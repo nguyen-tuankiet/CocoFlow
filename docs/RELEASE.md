@@ -8,8 +8,9 @@ Merging or pushing to `main` publishes a release by itself, see `.github/workflo
    `website/` do not build installers; Vercel redeploys the site on its own.
 2. It numbers the release `<major>.<minor>.<run number>` (major and minor come from `src-tauri/tauri.conf.json`;
    raise them by hand for a bigger release).
-3. It downloads the build tools from the `tools-v1` pre-release, builds the standard and the full installer with
-   `scripts/make-release.ps1 -SkipPortable`, and creates a GitHub Release with both files.
+3. It builds the standard and the full installer in two parallel jobs (`scripts/make-release.ps1 -SkipPortable -Variant …`,
+   each downloading only the tools from the `tools-v1` pre-release that it needs), then a last job creates the GitHub
+   Release with both files.
 4. The website asks the GitHub API for the latest release, so its download buttons update without any edit.
 
 ### One-time setup: the tools release

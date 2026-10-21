@@ -10,7 +10,8 @@
 # It is not in the standard installer; it gets its own "full" installer. src-tauri\tauri.full.conf.json adds
 # installer-extra\ to the resources and src-tauri\installer-hooks.nsh unpacks the archive after installing
 # (NSIS cannot hold the unpacked 1 GB next to the rest of the app).
-param([switch]$SkipBuild, [switch]$SkipPortable)
+# -Variant standard|full builds just that installer (CI builds the two in parallel jobs); the default builds both.
+param([switch]$SkipBuild, [switch]$SkipPortable, [ValidateSet('both', 'standard', 'full')][string]$Variant = 'both')
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
@@ -26,23 +27,33 @@ foreach ($extra in 'mogrify', 'stream', 'identify', 'montage', 'conjure', 'compa
     Remove-Item -LiteralPath "$root\installer-bin\magick\$extra.exe" -Force -ErrorAction SilentlyContinue
 }
 
+$wantStandard = $Variant -in 'both', 'standard'
+$wantFull = $Variant -in 'both', 'full'
+
 if (-not $SkipBuild) {
     foreach ($tool in 'ffmpeg.exe', 'pandoc', 'magick', 'gs', '7zip', 'ai') {
         if (-not (Test-Path "$root\installer-bin\$tool")) { throw "installer-bin\$tool is missing" }
     }
-    npm run tauri build -- --bundles nsis
-    if ($LASTEXITCODE -ne 0) { throw 'tauri build failed' }
+    if ($wantStandard) {
+        npm run tauri build -- --bundles nsis
+        if ($LASTEXITCODE -ne 0) { throw 'tauri build failed' }
+    }
 }
 
 # 1. installer
-$setup = Get-ChildItem "$root\src-tauri\target\release\bundle\nsis\*-setup.exe" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-if (-not $setup) { throw 'No installer found; run without -SkipBuild first.' }
-$setupOut = Join-Path $out "Cocoflow_${version}_x64-setup.exe"
-Copy-Item $setup.FullName $setupOut -Force
-& "$PSScriptRoot\sign.ps1" $setupOut
+if ($wantStandard) {
+    $setup = Get-ChildItem "$root\src-tauri\target\release\bundle\nsis\*-setup.exe" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+    if (-not $setup) { throw 'No installer found; run without -SkipBuild first.' }
+    $setupOut = Join-Path $out "Cocoflow_${version}_x64-setup.exe"
+    Copy-Item $setup.FullName $setupOut -Force
+    & "$PSScriptRoot\sign.ps1" $setupOut
+}
 
 # 1b. full installer: the same app plus LibreOffice, so nothing has to be copied by hand
-if (-not $SkipBuild -and (Test-Path "$root\installer-extra\libreoffice.7z")) {
+if ($wantFull -and $Variant -eq 'full' -and -not (Test-Path "$root\installer-extra\libreoffice.7z")) {
+    throw 'installer-extra\libreoffice.7z is missing'
+}
+if ($wantFull -and -not $SkipBuild -and (Test-Path "$root\installer-extra\libreoffice.7z")) {
     # a stale installer must never be mistaken for the full one
     Remove-Item "$root\src-tauri\target\release\bundle\nsis\*-setup.exe" -Force -ErrorAction SilentlyContinue
     npm run tauri build -- --bundles nsis --config src-tauri/tauri.full.conf.json

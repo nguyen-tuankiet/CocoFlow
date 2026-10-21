@@ -35,9 +35,30 @@ env:
   TOOLS_TAG: tools-v1
 
 jobs:
-  release:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.ver.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Work out the version
+        id: ver
+        shell: pwsh
+        run: |
+          $conf = Get-Content src-tauri/tauri.conf.json -Raw | ConvertFrom-Json
+          $parts = $conf.version.Split('.')
+          $version = "$($parts[0]).$($parts[1]).${{ github.run_number }}"
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "Building $version"
+
+  # The two installers are independent and NSIS spends most of the time compressing, so they build side by side.
+  build:
+    needs: version
     runs-on: windows-latest
     timeout-minutes: 120
+    strategy:
+      matrix:
+        variant: [standard, full]
     steps:
       - uses: actions/checkout@v4
 
@@ -50,18 +71,15 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
+          shared-key: release
+          save-if: ${{ matrix.variant == 'standard' }}
 
-      - name: Work out the version and write it into the build files
-        id: ver
+      - name: Write the version into the build files
         shell: pwsh
         run: |
-          $conf = Get-Content src-tauri/tauri.conf.json -Raw | ConvertFrom-Json
-          $parts = $conf.version.Split('.')
-          $version = "$($parts[0]).$($parts[1]).${{ github.run_number }}"
+          $version = "${{ needs.version.outputs.version }}"
           (Get-Content src-tauri/tauri.conf.json -Raw) -replace '"version":\s*"[^"]+"', "`"version`": `"$version`"" | Set-Content src-tauri/tauri.conf.json -NoNewline
           (Get-Content src-tauri/Cargo.toml -Raw) -replace '(?m)^version = "[^"]+"', "version = `"$version`"" | Set-Content src-tauri/Cargo.toml -NoNewline
-          "version=$version" >> $env:GITHUB_OUTPUT
-          "Building $version"
 
       - name: Download the build tools
         shell: pwsh
@@ -69,24 +87,44 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           New-Item -ItemType Directory -Force tools, installer-bin, installer-extra | Out-Null
-          gh release download $env:TOOLS_TAG --repo $env:GITHUB_REPOSITORY --dir tools
-          if ($LASTEXITCODE -ne 0) { throw "Release '$env:TOOLS_TAG' was not found. Publish it first (see scripts/pack-tools.ps1)." }
+          $files = @('tools-core.zip', 'tools-ai.zip')
+          if ('${{ matrix.variant }}' -eq 'full') { $files += 'libreoffice.7z' }
+          foreach ($f in $files) {
+            gh release download $env:TOOLS_TAG --repo $env:GITHUB_REPOSITORY --dir tools --pattern $f
+            if ($LASTEXITCODE -ne 0) { throw "Could not download $f from release '$env:TOOLS_TAG'. Publish it first (see scripts/pack-tools.ps1)." }
+          }
           7z x tools/tools-core.zip -oinstaller-bin -y -bso0
           7z x tools/tools-ai.zip -oinstaller-bin -y -bso0
-          Copy-Item tools/libreoffice.7z installer-extra/libreoffice.7z
+          if (Test-Path tools/libreoffice.7z) { Move-Item tools/libreoffice.7z installer-extra/libreoffice.7z }
           Remove-Item tools -Recurse -Force
 
       - run: npm ci
 
-      - name: Build both installers
+      - name: Build the installer
         shell: pwsh
-        run: ./scripts/make-release.ps1 -SkipPortable
+        run: ./scripts/make-release.ps1 -SkipPortable -Variant ${{ matrix.variant }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: installer-${{ matrix.variant }}
+          path: release/*.exe
+          compression-level: 0
+          if-no-files-found: error
+
+  publish:
+    needs: [version, build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: installer-*
+          merge-multiple: true
+          path: release
 
       - name: Publish the release
-        shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $v = "${{ steps.ver.outputs.version }}"
-          gh release create "v$v" --repo $env:GITHUB_REPOSITORY --title "Cocoflow $v" --generate-notes `
+          v="${{ needs.version.outputs.version }}"
+          gh release create "v$v" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "Cocoflow $v" --generate-notes \
             "release/Cocoflow_${v}_x64-setup.exe" "release/Cocoflow_${v}_x64-full-setup.exe"
