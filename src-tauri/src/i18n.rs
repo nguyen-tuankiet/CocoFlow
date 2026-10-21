@@ -80,6 +80,14 @@ impl Strings {
         self.code == "vi"
     }
 
+    pub fn update_title(&self, version: &str) -> String {
+        if self.vi() { format!("Đã có Cocoflow {version}") } else { format!("Cocoflow {version} is available") }
+    }
+
+    pub fn update_body(&self) -> &'static str {
+        if self.vi() { "Mở Cocoflow để tải bản mới." } else { "Open Cocoflow to download the new version." }
+    }
+
     pub fn n_finished(&self, n: usize) -> String {
         if self.vi() { format!("{n} file đã xong") } else { format!("{n} files finished") }
     }

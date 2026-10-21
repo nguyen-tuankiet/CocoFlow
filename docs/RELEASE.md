@@ -13,6 +13,15 @@ Merging or pushing to `main` publishes a release by itself, see `.github/workflo
    Release with both files.
 4. The website asks the GitHub API for the latest release, so its download buttons update without any edit.
 
+### Update notice inside the app
+
+Installed copies check `https://api.github.com/repos/nguyen-tuankiet/CocoFlow/releases/latest` (at start, when the window gets
+focus, and hourly, at most once every 6 hours). When the latest tag is newer than the installed version they show a banner
+with a **Download** button (opens the release page) and send one Windows notification per version. The user can skip a
+version or turn the check off with the "Check for updates" switch. Nothing needs to be done per release: the version number
+the app compares is the one the workflow writes into `tauri.conf.json`. Copies installed before this feature existed do not
+check, so they need one manual update.
+
 ### One-time setup: the tools release
 
 The third-party tools are too big for git, so they live in a pre-release that the workflow downloads:

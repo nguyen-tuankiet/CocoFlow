@@ -246,6 +246,28 @@ fn reveal(path: String) -> Result<(), String> {
     }
 }
 
+const RELEASES_URL: &str = "https://github.com/nguyen-tuankiet/CocoFlow/releases";
+
+/// Opens a Cocoflow release page in the default browser. Only that repository's releases are allowed,
+/// so the web UI cannot make the app open an arbitrary address.
+#[tauri::command]
+fn open_release_page(url: String) -> Result<(), String> {
+    if !url.starts_with(RELEASES_URL) || url.chars().any(|c| c.is_whitespace() || c == '"' || c == '&' || c == '^') {
+        return Err("address not allowed".into());
+    }
+    std::process::Command::new("rundll32.exe")
+        .args(["url.dll,FileProtocolHandler", &url])
+        .spawn()
+        .map(|_| ())
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn notify_update(app: AppHandle, version: String) {
+    let s = i18n::get();
+    jobs::notify(&app, &s.update_title(&version), s.update_body());
+}
+
 #[tauri::command]
 fn js_log(message: String) {
     wheel::log(&format!("js: {message}"));
@@ -380,6 +402,8 @@ fn main() {
             get_autostart,
             set_autostart,
             reveal,
+            open_release_page,
+            notify_update,
             hide_wheel,
             js_log,
             set_detection,

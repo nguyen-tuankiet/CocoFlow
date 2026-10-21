@@ -848,3 +848,36 @@ header {
   justify-content: flex-end;
   gap: 8px 18px;
 }
+
+.update {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+
+.update[hidden] {
+  display: none;
+}
+
+.update > span {
+  flex: 1;
+}
+
+.update-get {
+  border: 0;
+  border-radius: 9px;
+  padding: 5px 14px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+.update-get:hover {
+  filter: brightness(1.08);
+}

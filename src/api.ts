@@ -67,6 +67,10 @@ export const describePaths = (paths: string[]) => invoke<Record<string, string>>
 /** Reads the clipboard (copied files or an image); the files then arrive as a `files-added` event. */
 export const pasteClipboard = () => invoke<number>("paste_clipboard");
 export const reveal =(path: string) => invoke<void>("reveal", { path });
+/** Opens a Cocoflow release page in the default browser (the backend refuses any other address). */
+export const openReleasePage = (url: string) => invoke<void>("open_release_page", { url });
+/** Shows a Windows notification that a newer version exists. */
+export const notifyUpdate = (version: string) => invoke<void>("notify_update", { version });
 export const hideWheel = () => invoke<void>("hide_wheel");
 export const setDetection = (enabled: boolean) => invoke<void>("set_detection", { enabled });
 export const setAnyApp = (enabled: boolean) => invoke<void>("set_any_app", { enabled });

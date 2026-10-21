@@ -27,6 +27,7 @@ import {
   setDetection,
 } from "./api";
 import { EditorRequest, openEditor } from "./editor";
+import { Update, bannerText, checkForUpdate, download, setUpdatesEnabled, skipUpdate, startUpdates, updatesEnabled } from "./update";
 import {
   LangSetting,
   chooseLanguage,
@@ -70,6 +71,8 @@ function renderStatic() {
   $("detect-label").title = t("wheel.enable.tip");
   $("anyapp-label").title = t("wheel.anyapp.tip");
   $("autostart-label").title = t("autostart.tip");
+  $("update-label").title = t("update.check.tip");
+  $("update-skip").title = t("update.skip");
   const k = (key: string) => `<kbd>${key}</kbd>`;
   $("drop-sub").innerHTML = `${escapeHtml(t("drop.or"))} <button id="browse" class="link">${escapeHtml(t("drop.browse"))}</button> · <button id="paste" class="link">${escapeHtml(t("drop.paste"))}</button> ${t("drop.hint", {
     k1: k("Shift"),
@@ -266,6 +269,25 @@ const autostartEl = $<HTMLInputElement>("autostart");
 autostartEl.checked = await getAutostart();
 autostartEl.addEventListener("change", async () => (autostartEl.checked = await setAutostart(autostartEl.checked)));
 
+// ---- new version banner ----
+const updateEl = $("update");
+let pendingUpdate: Update | null = null;
+
+function renderUpdate(u: Update | null) {
+  pendingUpdate = u;
+  updateEl.hidden = !u;
+  if (u) $("update-text").textContent = bannerText(u);
+}
+
+$("update-get").addEventListener("click", () => pendingUpdate && download(pendingUpdate));
+$("update-skip").addEventListener("click", () => pendingUpdate && skipUpdate(pendingUpdate));
+const updateCheckEl = $<HTMLInputElement>("update-check");
+updateCheckEl.checked = updatesEnabled();
+updateCheckEl.addEventListener("change", () => {
+  setUpdatesEnabled(updateCheckEl.checked);
+  void checkForUpdate(true);
+});
+
 function renderEngines() {
   enginesEl.innerHTML = engineList
     .map(
@@ -279,6 +301,7 @@ function renderEngines() {
 
 onLanguage(() => {
   renderStatic();
+  renderUpdate(pendingUpdate);
   renderWork();
   renderJobs();
   renderEngines();
@@ -287,5 +310,4 @@ engineList = await engineStatus();
 renderStatic();
 renderJobs();
 renderEngines();
-
-
+startUpdates(renderUpdate);
