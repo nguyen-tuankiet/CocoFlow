@@ -1,0 +1,17 @@
+﻿PackageIdentifier: Tangelo.Tangelo
+PackageVersion: 0.2.0
+InstallerType: nullsoft
+Scope: user
+InstallModes:
+  - interactive
+  - silent
+InstallerSwitches:
+  Silent: /S
+  SilentWithProgress: /S
+UpgradeBehavior: install
+Installers:
+  - Architecture: x64
+    InstallerUrl: https://example.com/releases/Tangelo_0.2.0_x64-setup.exe   # TODO: public download URL
+    InstallerSha256: 0000000000000000000000000000000000000000000000000000000000000000   # TODO: from SHA256SUMS.txt
+ManifestType: installer
+ManifestVersion: 1.6.0

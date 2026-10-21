@@ -1,0 +1,40 @@
+import { createContext, ReactNode, useContext, useEffect, useState } from "react";
+
+export type Lang = "vi" | "en";
+
+type Ctx = { lang: Lang; setLang: (l: Lang) => void };
+const LangContext = createContext<Ctx>({ lang: "vi", setLang: () => {} });
+
+function initial(): Lang {
+  try {
+    const saved = localStorage.getItem("tangelo-lang");
+    if (saved === "vi" || saved === "en") return saved;
+  } catch {
+    /* storage can be blocked */
+  }
+  return (navigator.language || "vi").toLowerCase().startsWith("vi") ? "vi" : "en";
+}
+
+export function LangProvider({ children }: { children: ReactNode }) {
+  const [lang, setLangState] = useState<Lang>(initial);
+  useEffect(() => {
+    document.documentElement.lang = lang;
+    document.title = lang === "vi" ? "Tangelo – Kéo file, thả vào bánh xe" : "Tangelo – Drag a file, drop it on the wheel";
+  }, [lang]);
+  const setLang = (l: Lang) => {
+    setLangState(l);
+    try {
+      localStorage.setItem("tangelo-lang", l);
+    } catch {
+      /* ignore */
+    }
+  };
+  return <LangContext.Provider value={{ lang, setLang }}>{children}</LangContext.Provider>;
+}
+
+/** `const { t } = useT(); t("Tiếng Việt", "English")` */
+export function useT() {
+  const { lang, setLang } = useContext(LangContext);
+  const t = <A, B = A>(vi: A, en: B): A | B => (lang === "vi" ? vi : en);
+  return { lang, setLang, t };
+}

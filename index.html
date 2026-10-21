@@ -1,0 +1,70 @@
+﻿<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tangelo</title>
+  </head>
+  <body>
+    <div class="app">
+      <header>
+        <div class="brand"><span class="logo">🍊</span> Tangelo</div>
+        <div class="switches">
+          <label class="switch" id="detect-label">
+            <input id="detect" type="checkbox" checked />
+            <span data-i18n="wheel.enable">Drag wheel</span>
+          </label>
+          <label class="switch" id="anyapp-label">
+            <input id="anyapp" type="checkbox" checked />
+            <span data-i18n="wheel.anyapp">From any app</span>
+          </label>
+          <label class="switch" id="autostart-label">
+            <input id="autostart" type="checkbox" />
+            <span data-i18n="autostart">Start with Windows</span>
+          </label>
+          <label class="switch">
+            <span data-i18n="lang.label">Language</span>
+            <select id="lang">
+              <option value="auto" data-i18n="lang.auto">Auto</option>
+              <option value="en">English</option>
+              <option value="vi">Tiếng Việt</option>
+            </select>
+          </label>
+        </div>
+      </header>
+
+      <section id="drop" class="drop">
+        <div class="drop-title" data-i18n="drop.title">Drop files here</div>
+        <div class="drop-sub" id="drop-sub"></div>
+        <div class="drop-note" id="drop-note" hidden></div>
+      </section>
+
+      <section id="work" class="work" hidden>
+        <div class="files-row">
+          <div id="files" class="files"></div>
+          <button id="clear" class="ghost" data-i18n="clear">Clear</button>
+        </div>
+        <div class="tabs" id="tabs"></div>
+        <div id="options" class="options"></div>
+      </section>
+
+      <section class="activity">
+        <div class="activity-head">
+          <h2 data-i18n="activity">Activity</h2>
+          <span class="activity-actions">
+            <button id="clear-finished" class="ghost small" data-i18n="activity.clear">Clear finished</button>
+            <button id="cancel-all" class="ghost small" data-i18n="activity.cancelAll">Cancel all</button>
+          </span>
+        </div>
+        <div id="jobs" class="jobs"></div>
+      </section>
+
+      <details class="engines">
+        <summary data-i18n="engines">Tools used for conversion</summary>
+        <div id="engines"></div>
+      </details>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
+

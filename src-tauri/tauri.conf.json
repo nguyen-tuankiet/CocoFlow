@@ -1,0 +1,77 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Tangelo",
+  "version": "0.3.2",
+  "identifier": "dev.local.tangelo",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://127.0.0.1:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "withGlobalTauri": false,
+    "windows": [
+      {
+        "label": "main",
+        "title": "Tangelo",
+        "url": "index.html",
+        "width": 980,
+        "height": 720,
+        "minWidth": 720,
+        "minHeight": 560,
+        "center": true,
+        "visible": false,
+        "dragDropEnabled": true
+      },
+      {
+        "label": "wheel",
+        "title": "Tangelo Wheel",
+        "url": "wheel.html",
+        "width": 480,
+        "height": 480,
+        "x": -479,
+        "y": -479,
+        "visible": true,
+        "transparent": true,
+        "decorations": false,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "resizable": false,
+        "shadow": false,
+        "focus": false,
+        "dragDropEnabled": true
+      }
+    ],
+    "security": { "csp": null, "assetProtocol": { "enable": true, "scope": ["**"] } }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "publisher": "Tangelo",
+    "shortDescription": "Drag-and-drop file converter for Windows",
+    "longDescription": "Tangelo converts, compresses, trims and shares files from a wheel that opens under your cursor while you drag. Everything runs on your PC; nothing is uploaded.",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.ico"
+    ],
+    "resources": {
+      "../installer-bin/": "bin/"
+    },
+    "windows": {
+      "webviewInstallMode": { "type": "downloadBootstrapper" },
+      "signCommand": {
+        "cmd": "powershell",
+        "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "../scripts/sign.ps1", "%1"]
+      },
+      "nsis": {
+        "installMode": "currentUser",
+        "languages": ["English", "Vietnamese"],
+        "displayLanguageSelector": false,
+        "compression": "lzma"
+      }
+    }
+  }
+}

@@ -1,0 +1,19 @@
+﻿PackageIdentifier: Tangelo.Tangelo
+PackageVersion: 0.2.0
+PackageLocale: en-US
+Publisher: Tangelo
+PackageName: Tangelo
+ShortDescription: Drag-and-drop file converter with a radial wheel, built for Windows.
+Description: >-
+  Drag a file, hold Shift, Ctrl, Alt or Shift+Ctrl, and drop it on a wheel of formats, tools, actions or share
+  presets. Converts images, video, audio, documents, PDF, spreadsheets and archives; trims, crops, splits, resizes
+  and compresses to a target size. Everything runs locally and offline.
+Tags:
+  - converter
+  - ffmpeg
+  - pdf
+  - video
+  - image
+License: Proprietary   # TODO: set the licence you choose
+ManifestType: defaultLocale
+ManifestVersion: 1.6.0

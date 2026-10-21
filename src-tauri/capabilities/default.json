@@ -1,0 +1,10 @@
+{
+  "identifier": "default",
+  "description": "Permissions for the main and wheel windows",
+  "windows": ["main", "wheel"],
+  "permissions": [
+    "core:default",
+    "dialog:default",
+    "notification:default"
+  ]
+}

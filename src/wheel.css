@@ -1,0 +1,268 @@
+﻿html,
+body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  overflow: hidden;
+  font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#wheel {
+  position: relative;
+  width: 480px;
+  height: 480px;
+}
+
+.stage {
+  position: absolute;
+  inset: 0;
+  color: #1f2a44;
+}
+
+.stage.enter .ring,
+.stage.enter .card {
+  animation: pop 150ms cubic-bezier(0.2, 0.9, 0.3, 1.15);
+  transform-origin: 50% 50%;
+}
+
+@keyframes pop {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.ring {
+  position: absolute;
+  inset: 0;
+  filter: drop-shadow(0 8px 22px rgba(36, 62, 130, 0.38));
+}
+
+/* the grown stroke is what rounds the corners; fill and stroke share one gradient */
+.slice {
+  fill: url(#base);
+  stroke: url(#base);
+  stroke-linejoin: round;
+}
+
+.slice.hot {
+  fill: url(#hotg);
+  stroke: url(#hotg);
+  filter: drop-shadow(0 0 8px rgba(63, 109, 246, 0.45));
+}
+
+.edge {
+  fill: none;
+  stroke: rgba(112, 138, 205, 0.34);
+  stroke-linejoin: round;
+}
+
+.hub {
+  fill: url(#hubg);
+}
+
+.hub-ring {
+  fill: none;
+  stroke: rgba(63, 109, 246, 0.9);
+  stroke-width: 2.4;
+}
+
+.pointer {
+  fill: #3f6df6;
+  filter: drop-shadow(0 0 3px rgba(63, 109, 246, 0.6));
+}
+
+.label {
+  position: absolute;
+  width: 92px;
+  margin-left: -46px;
+  margin-top: -29px;
+  text-align: center;
+  line-height: 1.12;
+  pointer-events: none;
+  color: #2a3654;
+  transition: transform 100ms ease, color 100ms;
+}
+
+.label .badge,
+.label .glyph {
+  display: block;
+  width: max-content;
+  margin: 0 auto 4px;
+}
+
+.label .glyph .ico {
+  display: block;
+}
+
+.label span:not(.glyph) {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.005em;
+}
+
+.label.hot {
+  transform: scale(1.1);
+  color: #1d3fcf;
+}
+
+.hub-content {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 112px;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+}
+
+.hub-badge {
+  display: grid;
+  place-items: center;
+  margin: 0 auto 4px;
+  height: 46px;
+}
+
+.hub-badge .badge {
+  filter: drop-shadow(0 3px 5px rgba(40, 64, 130, 0.25));
+}
+
+.fname {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #1f2a44;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fcount {
+  margin-top: 1px;
+  font-size: 11px;
+  color: #7b88a6;
+}
+
+.modes {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(112, 138, 205, 0.3);
+  box-shadow: 0 6px 18px rgba(36, 62, 130, 0.25);
+  white-space: nowrap;
+}
+
+.pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #6b7a99;
+}
+
+.pill b {
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: #eaf0ff;
+  color: #4a63c9;
+}
+
+.pill.on {
+  color: #fff;
+  background: linear-gradient(180deg, #5b86ff, #3b62ea);
+  box-shadow: 0 2px 8px rgba(63, 109, 246, 0.45);
+}
+
+.pill.on b {
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+
+/* ring-less state: the hub becomes a card explaining why there is nothing here */
+.card {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 236px;
+  padding: 16px 14px 13px;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #ffffff, #eef2fb);
+  border: 1px solid rgba(112, 138, 205, 0.35);
+  box-shadow: 0 12px 30px rgba(36, 62, 130, 0.32);
+}
+
+.card .hub-content {
+  position: static;
+  transform: none;
+  width: auto;
+}
+
+.card .reason {
+  margin-top: 10px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #1f2a44;
+}
+
+.card .hint {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #7b88a6;
+}
+
+
+.label em {
+  display: block;
+  margin-top: 1px;
+  font-style: normal;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #7b88a6;
+}
+
+.label.hot em {
+  color: #3f6df6;
+}
+
+.fcount.goal {
+  color: #3f6df6;
+  font-weight: 700;
+}
+
+.pill {
+  gap: 4px;
+  padding: 3px 8px;
+  font-size: 11px;
+}
+
+.pill b {
+  font-size: 9px;
+  padding: 1px 4px;
+}
+
+
+/* mode pills are drop targets too: bigger hit area, and a cursor hint */
+.pill {
+  padding: 5px 9px;
+  cursor: pointer;
+}
