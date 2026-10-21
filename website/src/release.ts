@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 // .github/workflows/release.yml publishes a release (two installers) on every merge to main; the page asks the GitHub API
 // which one is the latest and links straight to its files. If the API is unreachable (rate limit, offline) the buttons
 // open the "latest release" page instead, which is always correct.
-const REPO = "nguyen-tuankiet/CocoFlow";
+export const REPO ="nguyen-tuankiet/CocoFlow";
 export const RELEASES_PAGE = `https://github.com/${REPO}/releases/latest`;
 
 export type Asset = { url: string; size: string };

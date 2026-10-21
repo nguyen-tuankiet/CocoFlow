@@ -3,7 +3,10 @@ import ReactDOM from "react-dom/client";
 import { ConfigProvider } from "antd";
 import App from "./App";
 import { LangProvider } from "./lang";
+import { trackView } from "./track";
 import "./styles.css";
+
+trackView();
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

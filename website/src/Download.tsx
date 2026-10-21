@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { FileBadge } from "./appicons";
 import { useT } from "./lang";
 import { useRelease } from "./release";
+import { trackDownload } from "./track";
 
 /** The Cocoflow wave (website/public/logo.png, made by scripts/make-icons.ps1). */
 export const Logo = ({ size = 30 }: { size?: number }) => (
@@ -56,7 +57,7 @@ export default function Download() {
           </div>
 
           <div className="dl-choices">
-            <a className="dl-choice primary" href={rel.setup.url}>
+            <a className="dl-choice primary" href={rel.setup.url} onClick={() => trackDownload("setup")}>
               <span className="dl-choice-icon"><WindowsFilled /></span>
               <span className="dl-choice-text">
                 <b>{t("Bản tiêu chuẩn", "Standard")} <em>{rel.setup.size}</em></b>
@@ -64,7 +65,7 @@ export default function Download() {
               </span>
               <DownloadOutlined className="dl-choice-dl" />
             </a>
-            <a className="dl-choice" href={rel.full.url}>
+            <a className="dl-choice" href={rel.full.url} onClick={() => trackDownload("full")}>
               <span className="dl-choice-icon"><WindowsFilled /></span>
               <span className="dl-choice-text">
                 <b>{t("Bản đầy đủ", "Full")} <em>{rel.full.size}</em></b>
