@@ -25,7 +25,7 @@ pub struct PdfInfo {
 
 pub fn cache_dir() -> PathBuf {
     let base = std::env::var_os("LOCALAPPDATA").map(PathBuf::from).unwrap_or_else(std::env::temp_dir);
-    let dir = base.join("Tangelo").join("cache");
+    let dir = base.join("Cocoflow").join("cache");
     let _ = std::fs::create_dir_all(&dir);
     dir
 }

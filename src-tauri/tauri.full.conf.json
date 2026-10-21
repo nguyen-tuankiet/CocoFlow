@@ -1,0 +1,12 @@
+{
+  "bundle": {
+    "resources": {
+      "../installer-extra/": "bin/"
+    },
+    "windows": {
+      "nsis": {
+        "installerHooks": "./installer-hooks.nsh"
+      }
+    }
+  }
+}

@@ -1,6 +1,6 @@
 # Code signing
 
-Tangelo's installer and executable are built **unsigned** unless you provide a certificate.
+Cocoflow's installer and executable are built **unsigned** unless you provide a certificate.
 Unsigned downloads trigger the Windows SmartScreen warning ("Windows protected your PC") the first time they run.
 Signing is the only thing that fixes this, and it needs a certificate that only you (the publisher) can obtain.
 Nothing in this repository can sign on your behalf.
@@ -31,15 +31,15 @@ Set the environment variables of **one** option before building (`npm run tauri 
 
 ```powershell
 # A) .pfx file
-$env:TANGELO_SIGN_PFX      = 'C:\keys\tangelo.pfx'
-$env:TANGELO_SIGN_PASSWORD = '********'
+$env:COCOFLOW_SIGN_PFX      = 'C:\keys\cocoflow.pfx'
+$env:COCOFLOW_SIGN_PASSWORD = '********'
 
 # B) certificate in the Windows store (hardware token / EV)
-$env:TANGELO_SIGN_THUMBPRINT = 'AB12CD34...'
+$env:COCOFLOW_SIGN_THUMBPRINT = 'AB12CD34...'
 
 # C) Azure Trusted Signing
-$env:TANGELO_SIGN_AZURE_DLIB     = 'C:\tools\Azure.CodeSigning.Dlib.dll'
-$env:TANGELO_SIGN_AZURE_METADATA = 'C:\keys\metadata.json'
+$env:COCOFLOW_SIGN_AZURE_DLIB     = 'C:\tools\Azure.CodeSigning.Dlib.dll'
+$env:COCOFLOW_SIGN_AZURE_METADATA = 'C:\keys\metadata.json'
 ```
 
 `signtool.exe` comes with the Windows SDK (`winget install Microsoft.WindowsSDK.10.0.22621`).
@@ -48,8 +48,8 @@ Never commit the `.pfx` or its password; keep them outside the repository.
 ## Checking a build
 
 ```powershell
-signtool verify /pa /v "release\Tangelo_0.2.0_x64-setup.exe"
-Get-AuthenticodeSignature "release\Tangelo_0.2.0_x64-setup.exe" | Format-List
+signtool verify /pa /v "release\Cocoflow_0.2.0_x64-setup.exe"
+Get-AuthenticodeSignature "release\Cocoflow_0.2.0_x64-setup.exe" | Format-List
 ```
 
 ## SmartScreen reputation
@@ -61,5 +61,5 @@ and certificate is what makes the warning go away.
 ## Tools bundled in the installer
 
 The installer carries FFmpeg (GPL build), Pandoc (GPL), ImageMagick, Ghostscript (AGPL), and 7-Zip (LGPL).
-These keep their own licences. If you distribute Tangelo publicly, include their licence texts and offer the
+These keep their own licences. If you distribute Cocoflow publicly, include their licence texts and offer the
 corresponding source as those licences require.

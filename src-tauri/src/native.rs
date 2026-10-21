@@ -131,7 +131,7 @@ fn program_data() -> Option<PathBuf> {
 }
 
 /// An ASCII-named path that leads to `dir`: the folder itself when its path is plain ASCII, otherwise a
-/// directory junction under %ProgramData%\Tangelo\links (junctions need no administrator rights).
+/// directory junction under %ProgramData%\Cocoflow\links (junctions need no administrator rights).
 pub fn ascii_alias(dir: &Path) -> PathBuf {
     if is_ascii_path(dir) {
         return dir.to_path_buf();
@@ -140,7 +140,7 @@ pub fn ascii_alias(dir: &Path) -> PathBuf {
     use std::hash::{Hash, Hasher};
     let mut h = std::collections::hash_map::DefaultHasher::new();
     dir.hash(&mut h);
-    let links = base.join("Tangelo").join("links");
+    let links = base.join("Cocoflow").join("links");
     let link = links.join(format!("{:016x}", h.finish()));
     if std::fs::read_dir(&link).is_ok() {
         return link;
@@ -163,7 +163,7 @@ pub fn ascii_alias(dir: &Path) -> PathBuf {
     }
 }
 
-/// Folder for scratch files: the system temp dir, or %ProgramData%\Tangelo\tmp when the user profile
+/// Folder for scratch files: the system temp dir, or %ProgramData%\Cocoflow\tmp when the user profile
 /// path is not ASCII (a profile named "Nguyễn Văn A" would otherwise break the AI tools).
 fn temp_base() -> PathBuf {
     let system = std::env::temp_dir();
@@ -172,7 +172,7 @@ fn temp_base() -> PathBuf {
     }
     match program_data() {
         Some(base) => {
-            let dir = base.join("Tangelo").join("tmp");
+            let dir = base.join("Cocoflow").join("tmp");
             if std::fs::create_dir_all(&dir).is_ok() { dir } else { system }
         }
         None => system,
@@ -181,7 +181,7 @@ fn temp_base() -> PathBuf {
 
 /// Per-job scratch folder next to the system temp dir.
 pub fn temp_dir(tag: &str) -> PathBuf {
-    let dir = temp_base().join("Tangelo").join(format!("{tag}-{}", std::process::id())).join(format!(
+    let dir = temp_base().join("Cocoflow").join(format!("{tag}-{}", std::process::id())).join(format!(
         "{}",
         std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_nanos()).unwrap_or(0)
     ));
@@ -205,7 +205,7 @@ mod tests {
 
     #[test]
     fn non_ascii_folders_get_an_ascii_alias() {
-        let base = std::env::temp_dir().join("tangelo-tests").join("alias");
+        let base = std::env::temp_dir().join("cocoflow-tests").join("alias");
         let real = base.join("Thư mục tiếng Việt");
         std::fs::create_dir_all(&real).unwrap();
         std::fs::write(real.join("a.txt"), "xin chào").unwrap();

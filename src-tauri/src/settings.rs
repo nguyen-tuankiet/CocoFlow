@@ -1,4 +1,4 @@
-﻿//! Tiny persisted settings: %LOCALAPPDATA%\Tangelo\settings.json
+﻿//! Tiny persisted settings: %LOCALAPPDATA%\Cocoflow\settings.json
 
 use crate::wheel;
 use serde::{Deserialize, Serialize};
@@ -48,7 +48,7 @@ fn system_language() -> &'static str {
 }
 
 fn path() -> Option<PathBuf> {
-    std::env::var_os("LOCALAPPDATA").map(|d| PathBuf::from(d).join("Tangelo").join("settings.json"))
+    std::env::var_os("LOCALAPPDATA").map(|d| PathBuf::from(d).join("Cocoflow").join("settings.json"))
 }
 
 pub fn current() -> Settings {

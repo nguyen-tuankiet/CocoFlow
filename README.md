@@ -1,8 +1,8 @@
-# Tangelo
+# Cocoflow
 
 Ứng dụng Windows chuyển đổi file bằng cách **kéo thả**: kéo một file, nhấn một phím (Shift / Ctrl / Alt…) và một bánh xe hiện ngay dưới con trỏ. Thả vào ô cần dùng để chuyển đổi, nén, cắt, chia sẻ hoặc chạy AI offline. Mọi thứ chạy trên máy, không tải file lên mạng.
 
-*Tangelo is a Windows drag-and-drop file converter: drag a file, press a key, and drop it on a wheel that opens under your cursor.*
+*Cocoflow is a Windows drag-and-drop file converter: drag a file, press a key, and drop it on a wheel that opens under your cursor.*
 
 ## Tính năng
 

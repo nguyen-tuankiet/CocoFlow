@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Tangelo",
-  "version": "0.3.2",
-  "identifier": "dev.local.tangelo",
+  "productName": "Cocoflow",
+  "version": "0.4.0",
+  "identifier": "dev.local.cocoflow",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://127.0.0.1:1420",
@@ -14,7 +14,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "Tangelo",
+        "title": "Cocoflow",
         "url": "index.html",
         "width": 980,
         "height": 720,
@@ -26,7 +26,7 @@
       },
       {
         "label": "wheel",
-        "title": "Tangelo Wheel",
+        "title": "Cocoflow Wheel",
         "url": "wheel.html",
         "width": 480,
         "height": 480,
@@ -48,9 +48,9 @@
   "bundle": {
     "active": true,
     "targets": ["nsis"],
-    "publisher": "Tangelo",
+    "publisher": "Cocoflow",
     "shortDescription": "Drag-and-drop file converter for Windows",
-    "longDescription": "Tangelo converts, compresses, trims and shares files from a wheel that opens under your cursor while you drag. Everything runs on your PC; nothing is uploaded.",
+    "longDescription": "Cocoflow converts, compresses, trims and shares files from a wheel that opens under your cursor while you drag. Everything runs on your PC; nothing is uploaded.",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

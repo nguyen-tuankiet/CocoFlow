@@ -4,21 +4,21 @@
 # Without a certificate the file is left unsigned and the script still exits 0, so builds keep working.
 #
 #   Option A: a code-signing certificate in a .pfx file
-#     $env:TANGELO_SIGN_PFX      = 'C:\keys\tangelo.pfx'
-#     $env:TANGELO_SIGN_PASSWORD = '...'
+#     $env:COCOFLOW_SIGN_PFX      = 'C:\keys\cocoflow.pfx'
+#     $env:COCOFLOW_SIGN_PASSWORD = '...'
 #
 #   Option B: a certificate in the Windows certificate store (hardware token, EV certificate)
-#     $env:TANGELO_SIGN_THUMBPRINT = 'AB12...'
+#     $env:COCOFLOW_SIGN_THUMBPRINT = 'AB12...'
 #
 #   Option C: Azure Trusted Signing
-#     $env:TANGELO_SIGN_AZURE_DLIB     = 'C:\...\Azure.CodeSigning.Dlib.dll'
-#     $env:TANGELO_SIGN_AZURE_METADATA = 'C:\...\metadata.json'
+#     $env:COCOFLOW_SIGN_AZURE_DLIB     = 'C:\...\Azure.CodeSigning.Dlib.dll'
+#     $env:COCOFLOW_SIGN_AZURE_METADATA = 'C:\...\metadata.json'
 #
 # See docs/SIGNING.md.
 param([Parameter(Mandatory = $true)][string]$File)
 
 $ErrorActionPreference = 'Stop'
-$timestamp = if ($env:TANGELO_SIGN_TIMESTAMP) { $env:TANGELO_SIGN_TIMESTAMP } else { 'http://timestamp.digicert.com' }
+$timestamp = if ($env:COCOFLOW_SIGN_TIMESTAMP) { $env:COCOFLOW_SIGN_TIMESTAMP } else { 'http://timestamp.digicert.com' }
 
 function Find-SignTool {
     $candidates = @(
@@ -30,9 +30,9 @@ function Find-SignTool {
 }
 
 $mode = $null
-if ($env:TANGELO_SIGN_PFX) { $mode = 'pfx' }
-elseif ($env:TANGELO_SIGN_THUMBPRINT) { $mode = 'store' }
-elseif ($env:TANGELO_SIGN_AZURE_DLIB) { $mode = 'azure' }
+if ($env:COCOFLOW_SIGN_PFX) { $mode = 'pfx' }
+elseif ($env:COCOFLOW_SIGN_THUMBPRINT) { $mode = 'store' }
+elseif ($env:COCOFLOW_SIGN_AZURE_DLIB) { $mode = 'azure' }
 
 if (-not $mode) {
     Write-Host "sign.ps1: no certificate configured, leaving '$([IO.Path]::GetFileName($File))' unsigned."
@@ -44,15 +44,15 @@ if (-not $signtool) { throw 'signtool.exe was not found. Install the Windows SDK
 
 switch ($mode) {
     'pfx' {
-        $args = @('sign', '/fd', 'SHA256', '/tr', $timestamp, '/td', 'SHA256', '/f', $env:TANGELO_SIGN_PFX)
-        if ($env:TANGELO_SIGN_PASSWORD) { $args += @('/p', $env:TANGELO_SIGN_PASSWORD) }
+        $args = @('sign', '/fd', 'SHA256', '/tr', $timestamp, '/td', 'SHA256', '/f', $env:COCOFLOW_SIGN_PFX)
+        if ($env:COCOFLOW_SIGN_PASSWORD) { $args += @('/p', $env:COCOFLOW_SIGN_PASSWORD) }
     }
     'store' {
-        $args = @('sign', '/fd', 'SHA256', '/tr', $timestamp, '/td', 'SHA256', '/sha1', $env:TANGELO_SIGN_THUMBPRINT)
+        $args = @('sign', '/fd', 'SHA256', '/tr', $timestamp, '/td', 'SHA256', '/sha1', $env:COCOFLOW_SIGN_THUMBPRINT)
     }
     'azure' {
         $args = @('sign', '/v', '/fd', 'SHA256', '/tr', 'http://timestamp.acs.microsoft.com', '/td', 'SHA256',
-            '/dlib', $env:TANGELO_SIGN_AZURE_DLIB, '/dmdf', $env:TANGELO_SIGN_AZURE_METADATA)
+            '/dlib', $env:COCOFLOW_SIGN_AZURE_DLIB, '/dmdf', $env:COCOFLOW_SIGN_AZURE_METADATA)
     }
 }
 $args += $File

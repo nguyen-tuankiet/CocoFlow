@@ -1,14 +1,13 @@
 // ===== EDIT THIS FILE AFTER EACH RELEASE =====
 // `base` is where the files are hosted, without a trailing slash. For GitHub Releases:
-//   https://github.com/<you>/<repo>/releases/download/v0.3.2
-// The offline AI tools are inside the installer and the portable zip, so only LibreOffice is a separate add-on.
+//   https://github.com/<you>/<repo>/releases/download/v0.4.0
+// Two installers: the standard one (offline AI inside) and the full one (the same plus LibreOffice).
 export const RELEASE = {
-  version: "0.3.2",
-  base: "https://example.com/downloads/v0.3.2",
+  version: "0.4.0",
+  base: "https://example.com/downloads/v0.4.0",
   files: {
-    setup: { name: "Tangelo_0.3.2_x64-setup.exe", size: "457 MB" },
-    portable: { name: "Tangelo_0.3.2_x64-portable.zip", size: "558 MB" },
-    office: { name: "Tangelo_0.3.2_LibreOffice-addon.zip", size: "353 MB" },
+    setup: { name: "Cocoflow_0.4.0_x64-setup.exe", size: "457 MB" },
+    full: { name: "Cocoflow_0.4.0_x64-full-setup.exe", size: "670 MB" },
   },
 } as const;
 

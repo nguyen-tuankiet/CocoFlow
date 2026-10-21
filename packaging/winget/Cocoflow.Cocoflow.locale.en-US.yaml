@@ -1,8 +1,8 @@
-﻿PackageIdentifier: Tangelo.Tangelo
+﻿PackageIdentifier: Cocoflow.Cocoflow
 PackageVersion: 0.2.0
 PackageLocale: en-US
-Publisher: Tangelo
-PackageName: Tangelo
+Publisher: Cocoflow
+PackageName: Cocoflow
 ShortDescription: Drag-and-drop file converter with a radial wheel, built for Windows.
 Description: >-
   Drag a file, hold Shift, Ctrl, Alt or Shift+Ctrl, and drop it on a wheel of formats, tools, actions or share

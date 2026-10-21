@@ -1,0 +1,7 @@
+﻿# winget version manifest (template). Copy the three files into
+# manifests/t/Cocoflow/Cocoflow/<version>/ of a fork of microsoft/winget-pkgs, fill in the URL and hash, then open a PR.
+PackageIdentifier: Cocoflow.Cocoflow
+PackageVersion: 0.2.0
+DefaultLocale: en-US
+ManifestType: version
+ManifestVersion: 1.6.0

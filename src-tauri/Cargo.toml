@@ -1,6 +1,6 @@
 [package]
-name = "tangelo"
-version = "0.3.2"
+name = "cocoflow"
+version = "0.4.0"
 description = "Drag-and-drop radial file converter for Windows"
 edition = "2021"
 

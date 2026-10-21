@@ -459,7 +459,7 @@ export default function Demo() {
               className={`tile${drag?.item.id === it.id ? " dim" : ""}${it.fresh ? " fresh" : ""}`}
               onPointerDown={(e) => onFileDown(e, it)}
             >
-              <FileBadge ext={it.ext} size={44} />
+              <FileBadge ext={it.ext} size={54} />
               <span className="tile-name">{it.name}.{it.ext}</span>
             </div>
           ))}
@@ -473,7 +473,7 @@ export default function Demo() {
 
         {drag && (
           <div className="ghost" style={{ transform: `translate3d(${drag.x - 26}px, ${drag.y - 30}px, 0) rotate(-4deg)` }}>
-            <FileBadge ext={drag.item.ext} size={44} />
+            <FileBadge ext={drag.item.ext} size={54} />
           </div>
         )}
         {drag?.auto && (
@@ -484,7 +484,7 @@ export default function Demo() {
 
         {toast && (
           <div className="toast" key={toast.id}>
-            <div className="toast-app"><span className="tray-dot" /> Tangelo</div>
+            <div className="toast-app"><span className="tray-dot" /> Cocoflow</div>
             <div className="toast-title">{toast.toast ? toast.toast[lang] : t("Hoàn tất", "Done")}</div>
             {toast.to && <div className="toast-body">{toast.from} → {toast.to}</div>}
           </div>

@@ -102,15 +102,15 @@ mod tests {
 
     #[test]
     fn picks_central_sentences_in_original_order() {
-        let text = "Tangelo converts files on your own computer. It never uploads anything to a server. \
-            The weather was pleasant yesterday afternoon in the city. Files are converted locally by Tangelo and stay on your computer. \
-            A random remark about lunch appeared in the notes. Tangelo also compresses video and images to a chosen size. \
+        let text = "Cocoflow converts files on your own computer. It never uploads anything to a server. \
+            The weather was pleasant yesterday afternoon in the city. Files are converted locally by Cocoflow and stay on your computer. \
+            A random remark about lunch appeared in the notes. Cocoflow also compresses video and images to a chosen size. \
             Another unrelated sentence mentions a football match last night. Local conversion keeps your files private on your computer. \
-            Someone wrote about gardening tomatoes this summer. The wheel in Tangelo opens when you drag files. \
-            Yet another aside about traffic on the highway today. Tangelo runs on Windows and works offline for files. \
-            Nobody remembers the colour of the curtains in the old office. Compression in Tangelo can target an exact size for files.";
+            Someone wrote about gardening tomatoes this summer. The wheel in Cocoflow opens when you drag files. \
+            Yet another aside about traffic on the highway today. Cocoflow runs on Windows and works offline for files. \
+            Nobody remembers the colour of the curtains in the old office. Compression in Cocoflow can target an exact size for files.";
         let summary = summarize(text, Some(4));
-        assert!(summary.matches("Tangelo").count() >= 3, "{summary}");
+        assert!(summary.matches("Cocoflow").count() >= 3, "{summary}");
         assert!(!summary.contains("curtains") && !summary.contains("football"), "{summary}");
         let parts: Vec<&str> = summary.split("\n\n").collect();
         assert!((3..=4).contains(&parts.len()), "{} sentences", parts.len());
@@ -118,12 +118,12 @@ mod tests {
 
     #[test]
     fn works_for_vietnamese() {
-        let text = "Tangelo là ứng dụng chuyển đổi file chạy trên máy tính của bạn. Mọi file đều được xử lý ngay trên máy và không tải lên máy chủ. \
-            Hôm qua trời nắng đẹp ở thành phố khi tôi đi dạo quanh hồ. Ứng dụng Tangelo hỗ trợ nén video và ảnh theo dung lượng mong muốn. \
-            Một câu không liên quan nói về trận bóng đá tối qua tại sân vận động. Bánh xe của Tangelo hiện ra khi bạn kéo file vào. \
-            Có người kể về việc trồng cà chua trong vườn nhà vào mùa hè. Tangelo chuyển đổi ảnh, video, âm thanh và tài liệu rất nhanh trên máy.";
+        let text = "Cocoflow là ứng dụng chuyển đổi file chạy trên máy tính của bạn. Mọi file đều được xử lý ngay trên máy và không tải lên máy chủ. \
+            Hôm qua trời nắng đẹp ở thành phố khi tôi đi dạo quanh hồ. Ứng dụng Cocoflow hỗ trợ nén video và ảnh theo dung lượng mong muốn. \
+            Một câu không liên quan nói về trận bóng đá tối qua tại sân vận động. Bánh xe của Cocoflow hiện ra khi bạn kéo file vào. \
+            Có người kể về việc trồng cà chua trong vườn nhà vào mùa hè. Cocoflow chuyển đổi ảnh, video, âm thanh và tài liệu rất nhanh trên máy.";
         let summary = summarize(text, Some(3));
-        assert!(summary.contains("Tangelo"));
+        assert!(summary.contains("Cocoflow"));
         assert!(!summary.contains("cà chua"));
     }
 

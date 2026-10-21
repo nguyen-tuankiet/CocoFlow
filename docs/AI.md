@@ -1,7 +1,7 @@
 ﻿# Offline AI add-on
 
 The AI tools ship inside the installer and the portable zip (`installer-bin\ai\` is copied to `bin\ai\`), so there is
-nothing extra to install. Tangelo finds them automatically; they appear in the **AI** wheel (Ctrl+Alt while dragging)
+nothing extra to install. Cocoflow finds them automatically; they appear in the **AI** wheel (Ctrl+Alt while dragging)
 and in the AI tab of the main window. Only LibreOffice is still a separate add-on zip.
 
 | Tool | What it does | Engine |
@@ -44,5 +44,5 @@ better accuracy at the cost of speed).
 
 - Speech recognition runs on the CPU: expect roughly real-time speed on a laptop; long files show progress in Activity.
 - Upscaling needs a Vulkan-capable graphics driver (any recent GPU or integrated graphics).
-- The AI tools cannot open paths with accented characters, so Tangelo reaches them through a folder link under
-  `%ProgramData%\Tangelo\links` and keeps its scratch files in an ASCII folder. This is automatic.
+- The AI tools cannot open paths with accented characters, so Cocoflow reaches them through a folder link under
+  `%ProgramData%\Cocoflow\links` and keeps its scratch files in an ASCII folder. This is automatic.

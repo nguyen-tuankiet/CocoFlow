@@ -229,7 +229,7 @@ mod tests {
     #[test]
     fn qa_numbers_stay_numbers_and_ids_stay_text() {
         use calamine::{open_workbook_auto, Data, Reader};
-        let dir = std::env::temp_dir().join("tangelo-tests").join("sheet-types");
+        let dir = std::env::temp_dir().join("cocoflow-tests").join("sheet-types");
         std::fs::create_dir_all(&dir).unwrap();
         let sheets = vec![Sheet {
             name: "T".into(),
@@ -249,7 +249,7 @@ mod tests {
 
     #[test]
     fn xlsx_and_ods_roundtrip() {
-        let dir = std::env::temp_dir().join("tangelo-tests").join("sheet");
+        let dir = std::env::temp_dir().join("cocoflow-tests").join("sheet");
         std::fs::create_dir_all(&dir).unwrap();
         let sheets = vec![Sheet {
             name: "Data".into(),

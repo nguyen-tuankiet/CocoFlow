@@ -7,7 +7,7 @@ const LangContext = createContext<Ctx>({ lang: "vi", setLang: () => {} });
 
 function initial(): Lang {
   try {
-    const saved = localStorage.getItem("tangelo-lang");
+    const saved = localStorage.getItem("cocoflow-lang");
     if (saved === "vi" || saved === "en") return saved;
   } catch {
     /* storage can be blocked */
@@ -19,12 +19,12 @@ export function LangProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>(initial);
   useEffect(() => {
     document.documentElement.lang = lang;
-    document.title = lang === "vi" ? "Tangelo – Kéo file, thả vào bánh xe" : "Tangelo – Drag a file, drop it on the wheel";
+    document.title = lang === "vi" ? "Cocoflow – Kéo file, thả vào bánh xe" : "Cocoflow – Drag a file, drop it on the wheel";
   }, [lang]);
   const setLang = (l: Lang) => {
     setLangState(l);
     try {
-      localStorage.setItem("tangelo-lang", l);
+      localStorage.setItem("cocoflow-lang", l);
     } catch {
       /* ignore */
     }

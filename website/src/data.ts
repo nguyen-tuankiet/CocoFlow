@@ -1,4 +1,4 @@
-// What Tangelo offers per kind of file. Mirrors src-tauri/src/catalog.rs, goals.rs and src/i18n.ts of the app; keep them in step.
+// What Cocoflow offers per kind of file. Mirrors src-tauri/src/catalog.rs, goals.rs and src/i18n.ts of the app; keep them in step.
 
 export type L = { vi: string; en: string };
 const L = (vi: string, en: string): L => ({ vi, en });
@@ -84,6 +84,7 @@ export type FType = {
   tools: string[];
   share: Goal[];
   ai: string[];
+  hideTools?: string[]; // real tools left out of the Features chips so that the row stays on one line
   multi?: L; // what several files can be merged into
   note?: L;
   seconds: number; // how long the demo job seems to run
@@ -110,6 +111,7 @@ export const TYPES: FType[] = [
     inputs: ["MP4", "MKV", "MOV", "AVI", "WebM", "WMV", "FLV", "M4V", "MPG", "TS", "3GP"],
     convert: ["mp4", "mkv", "webm", "mov", "avi", "wmv", "gif", "mp3", "m4a"],
     tools: ["compress", "resize", "trim", "crop", "split", "mute", "rotate-right", "frame", "zip"],
+    hideTools: ["rotate-right", "zip"],
     share: [
       G("Zalo · Chat", "Zalo · Chat", "≤ 25 MB", "chat", "-zalo", "mp4"), G("Email", "Email", "≤ 10 MB", "mail", "-email", "mp4"),
       G("Story 9:16", "Story 9:16", "1080×1920", "phone", "-story", "mp4"), G("Web 1080p", "Web 1080p", "YouTube · FB", "globe", "-web", "mp4"),
@@ -139,7 +141,7 @@ export const TYPES: FType[] = [
     share: [G("Email", "Email", "≤ 10 MB", "mail", "-email", "pdf"), G("Nhỏ gọn", "Small", "≤ 2 MB", "compress", "-nho", "pdf"), G("In ấn", "Print", "chất lượng cao", "pdf", "-in", "pdf")],
     ai: ["ocr", "ocr-pdf", "summary"],
     multi: L("gộp thành một file PDF", "merge into one PDF"),
-    note: L("PDF sang PowerPoint (và DOCX giữ nguyên bố cục) cần gói LibreOffice.", "PDF to PowerPoint (and layout-exact DOCX) needs the LibreOffice add-on."),
+    note: L("PDF sang PowerPoint (và DOCX giữ nguyên bố cục) cần bản đầy đủ, có sẵn LibreOffice.", "PDF to PowerPoint (and layout-exact DOCX) needs the full build, which includes LibreOffice."),
     seconds: 1.3,
   },
   {
@@ -167,7 +169,7 @@ export const TYPES: FType[] = [
     tools: ["zip"],
     share: [],
     ai: [],
-    note: L("Cần gói LibreOffice (tải riêng).", "Needs the LibreOffice add-on (separate download)."),
+    note: L("Cần bản đầy đủ, có sẵn LibreOffice.", "Needs the full build, which includes LibreOffice."),
     seconds: 1.6,
   },
   {
@@ -189,6 +191,56 @@ export const TYPES: FType[] = [
     seconds: 0.6,
   },
 ];
+
+// ---- what each option does, in one sentence (shown when a chip is picked in the Features section)
+export const TOOL_DESC: Record<string, L> = {
+  compress: L("Giảm dung lượng mà vẫn giữ chất lượng gần như nguyên.", "Shrinks the file while keeping almost the same quality."),
+  resize: L("Đổi kích thước theo điểm ảnh hoặc phần trăm, có xem trước.", "Resize by pixels or percent, with a preview."),
+  crop: L("Khoanh vùng cần giữ, có xem trước trước khi lưu.", "Frame the area to keep, with a preview before saving."),
+  trim: L("Chọn đoạn cần giữ bằng thanh trượt, có xem trước.", "Pick the part to keep with a slider, with a preview."),
+  split: L("Tách thành nhiều đoạn theo thời gian hoặc điểm đánh dấu.", "Split into parts by time or at markers."),
+  "rotate-right": L("Xoay 90° theo chiều kim đồng hồ.", "Rotate 90° clockwise."),
+  "rotate-left": L("Xoay 90° ngược chiều kim đồng hồ.", "Rotate 90° counter-clockwise."),
+  flip: L("Lật ngang hình.", "Flip horizontally."),
+  grayscale: L("Chuyển hình sang đen trắng.", "Turn the picture black and white."),
+  mute: L("Xóa âm thanh khỏi video.", "Remove the sound from a video."),
+  frame: L("Lưu một khung hình của video thành ảnh JPG.", "Save a frame of the video as a JPG picture."),
+  normalize: L("Cân bằng âm lượng cho đều.", "Even out the volume."),
+  "trim-silence": L("Cắt khoảng lặng ở đầu và cuối.", "Cut silence at the start and end."),
+  faster: L("Phát nhanh gấp 1,5 lần, giữ nguyên cao độ.", "Play 1.5× faster, keeping the pitch."),
+  extract: L("Giải nén vào thư mục cạnh file gốc.", "Extract into a folder next to the archive."),
+  zip: L("Nén vào một file zip.", "Pack into a zip file."),
+};
+
+export const AI_DESC: Record<string, L> = {
+  ocr: L("Đọc chữ tiếng Việt và tiếng Anh trong ảnh hoặc PDF quét ra file văn bản.", "Reads Vietnamese and English text in a picture or scanned PDF into a text file."),
+  "ocr-pdf": L("Biến PDF quét thành PDF có thể tìm kiếm và chọn chữ.", "Turns a scanned PDF into one you can search and select text in."),
+  rmbg: L("Tách nền, giữ chủ thể trên nền trong suốt.", "Removes the background and keeps the subject on transparency."),
+  up2: L("Phóng to ảnh gấp 2 lần mà vẫn nét.", "Makes the picture 2× larger and still sharp."),
+  up4: L("Phóng to ảnh gấp 4 lần mà vẫn nét.", "Makes the picture 4× larger and still sharp."),
+  transcribe: L("Chuyển lời nói thành phụ đề SRT hoặc VTT bằng Whisper.", "Turns speech into SRT or VTT subtitles with Whisper."),
+  "talk-summary": L("Tóm tắt nội dung lời nói.", "Summarizes what is said."),
+  summary: L("Rút ra các ý chính của tài liệu.", "Pulls out the key points of the document."),
+};
+
+/** Normalised extension of an input label such as "WebM", "Markdown" or "GZ". */
+export const extOf = (label: string): string => {
+  const e = label.toLowerCase();
+  return ({ markdown: "md", jpeg: "jpg", tif: "tiff", gz: "gzip" } as Record<string, string>)[e] ?? e;
+};
+
+/** What the wheel offers for a given kind of file once the source format is known (mirrors catalog.rs). */
+export function listsFor(type: FType, ext: string) {
+  const magick = type.id === "image" && ["heic", "svg", "psd"].includes(ext); // these need ImageMagick
+  const convert = magick ? ["png", "jpg", "webp", "pdf"] : type.convert.filter((x) => x !== ext);
+  let tools = type.tools;
+  if (type.id === "image") {
+    if (magick) tools = ["zip"];
+    else if (!["jpg", "png", "webp"].includes(ext)) tools = tools.filter((k) => k !== "compress");
+  }
+  const ai = magick ? [] : type.ai;
+  return { convert, tools, ai, share: type.share };
+}
 
 /** Convert targets without the file's own format. */
 export const targetsFor = (t: FType) => t.convert.filter((x) => x !== t.example.ext);

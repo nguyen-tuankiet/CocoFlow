@@ -5,7 +5,11 @@
 #
 # Needs: Node, Rust (MSVC), and the third-party tools in installer-bin\ (ffmpeg.exe, pandoc\, magick\, gs\, 7zip\, ai\).
 # The offline AI tools (installer-bin\ai\) ship inside the installer and the portable zip.
-# Optional: LibreOffice in release\Tangelo\bin\libreoffice\ (becomes the separate add-on zip).
+# Optional: installer-extra\libreoffice.7z = the LibreOffice folder packed with 7-Zip (slides, PDF to PowerPoint):
+#   7z a -t7z -mx=5 installer-extra\libreoffice.7z <path to the libreoffice folder>
+# It is not in the standard installer; it gets its own "full" installer. src-tauri\tauri.full.conf.json adds
+# installer-extra\ to the resources and src-tauri\installer-hooks.nsh unpacks the archive after installing
+# (NSIS cannot hold the unpacked 1 GB next to the rest of the app).
 param([switch]$SkipBuild)
 
 $ErrorActionPreference = 'Stop'
@@ -27,36 +31,36 @@ if (-not $SkipBuild) {
 # 1. installer
 $setup = Get-ChildItem "$root\src-tauri\target\release\bundle\nsis\*-setup.exe" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
 if (-not $setup) { throw 'No installer found; run without -SkipBuild first.' }
-$setupOut = Join-Path $out "Tangelo_${version}_x64-setup.exe"
+$setupOut = Join-Path $out "Cocoflow_${version}_x64-setup.exe"
 Copy-Item $setup.FullName $setupOut -Force
 & "$PSScriptRoot\sign.ps1" $setupOut
+
+# 1b. full installer: the same app plus LibreOffice, so nothing has to be copied by hand
+if (-not $SkipBuild -and (Test-Path "$root\installer-extra\libreoffice.7z")) {
+    # a stale installer must never be mistaken for the full one
+    Remove-Item "$root\src-tauri\target\release\bundle\nsis\*-setup.exe" -Force -ErrorAction SilentlyContinue
+    npm run tauri build -- --bundles nsis --config src-tauri/tauri.full.conf.json
+    if ($LASTEXITCODE -ne 0) { throw 'tauri build (full) failed' }
+    $full = Get-ChildItem "$root\src-tauri\target\release\bundle\nsis\*-setup.exe" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+    if (-not $full) { throw 'No full installer was produced.' }
+    $fullOut = Join-Path $out "Cocoflow_${version}_x64-full-setup.exe"
+    Copy-Item $full.FullName $fullOut -Force
+    & "$PSScriptRoot\sign.ps1" $fullOut
+}
 
 # 2. portable zip: the exe plus the bundled tools
 $stage = Join-Path $root 'release\_portable'
 if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
-New-Item -ItemType Directory -Force "$stage\Tangelo" | Out-Null
-Copy-Item "$root\src-tauri\target\release\tangelo.exe" "$stage\Tangelo\Tangelo.exe"
-& "$PSScriptRoot\sign.ps1" "$stage\Tangelo\Tangelo.exe"
-Copy-Item "$root\installer-bin" "$stage\Tangelo\bin" -Recurse
-$portable = Join-Path $out "Tangelo_${version}_x64-portable.zip"
+New-Item -ItemType Directory -Force "$stage\Cocoflow" | Out-Null
+Copy-Item "$root\src-tauri\target\release\cocoflow.exe" "$stage\Cocoflow\Cocoflow.exe"
+& "$PSScriptRoot\sign.ps1" "$stage\Cocoflow\Cocoflow.exe"
+Copy-Item "$root\installer-bin" "$stage\Cocoflow\bin" -Recurse
+$portable = Join-Path $out "Cocoflow_${version}_x64-portable.zip"
 if (Test-Path $portable) { Remove-Item $portable }
-Compress-Archive -Path "$stage\Tangelo" -DestinationPath $portable -CompressionLevel Optimal
+Compress-Archive -Path "$stage\Cocoflow" -DestinationPath $portable -CompressionLevel Optimal
 Remove-Item $stage -Recurse -Force
 
-# 3. optional LibreOffice add-on (slides, PDF to PowerPoint)
-$office = "$root\release\Tangelo\bin\libreoffice"
-if (Test-Path $office) {
-    $addonStage = Join-Path $root 'release\_addon'
-    if (Test-Path $addonStage) { Remove-Item $addonStage -Recurse -Force }
-    New-Item -ItemType Directory -Force "$addonStage\Tangelo\bin" | Out-Null
-    Copy-Item $office "$addonStage\Tangelo\bin\libreoffice" -Recurse
-    $addon = Join-Path $out "Tangelo_${version}_LibreOffice-addon.zip"
-    if (Test-Path $addon) { Remove-Item $addon }
-    Compress-Archive -Path "$addonStage\Tangelo" -DestinationPath $addon -CompressionLevel Optimal
-    Remove-Item $addonStage -Recurse -Force
-}
-
-# 4. checksums
+# 3. checksums
 $sums = Get-ChildItem $out -File | Where-Object { $_.Extension -in '.exe', '.zip' } | ForEach-Object {
     "{0}  {1}" -f (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower(), $_.Name
 }

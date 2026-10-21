@@ -1,6 +1,6 @@
-//! "Paste to convert": turns whatever is on the clipboard into files Tangelo can work on.
+//! "Paste to convert": turns whatever is on the clipboard into files Cocoflow can work on.
 //! Files copied in Explorer are used as they are; a copied image (browser "Copy image", screenshot,
-//! Snipping Tool…) is saved as a PNG in Pictures\Tangelo so that it can go through the usual options.
+//! Snipping Tool…) is saved as a PNG in Pictures\Cocoflow so that it can go through the usual options.
 
 use crate::i18n;
 use std::path::{Path, PathBuf};
@@ -45,7 +45,7 @@ fn save_dir(app: &AppHandle) -> Result<PathBuf, String> {
         .picture_dir()
         .or_else(|_| app.path().download_dir())
         .map_err(|e| e.to_string())?;
-    let dir = base.join("Tangelo");
+    let dir = base.join("Cocoflow");
     std::fs::create_dir_all(&dir).map_err(|e| format!("{}: {e}", dir.display()))?;
     Ok(dir)
 }
@@ -88,7 +88,7 @@ mod tests {
 
     #[test]
     fn png_roundtrip_and_alpha_fix() {
-        let dir = std::env::temp_dir().join("tangelo-clip-test");
+        let dir = std::env::temp_dir().join("cocoflow-clip-test");
         let _ = std::fs::create_dir_all(&dir);
         let path = unique_path(&dir, "t");
         // 2x1 image, both alpha bytes 0 -> must come out opaque
@@ -104,7 +104,7 @@ mod tests {
 
     #[test]
     fn names_do_not_collide() {
-        let dir = std::env::temp_dir().join("tangelo-clip-names");
+        let dir = std::env::temp_dir().join("cocoflow-clip-names");
         let _ = std::fs::create_dir_all(&dir);
         let a = unique_path(&dir, "x");
         std::fs::write(&a, b"1").unwrap();

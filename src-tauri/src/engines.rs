@@ -65,7 +65,7 @@ impl AiEngines {
 
 fn ai_roots() -> Vec<PathBuf> {
     let mut roots: Vec<PathBuf> = Vec::new();
-    if let Some(custom) = std::env::var_os("TANGELO_AI") {
+    if let Some(custom) = std::env::var_os("COCOFLOW_AI") {
         roots.push(PathBuf::from(custom));
     }
     for dir in search_dirs() {
@@ -77,7 +77,7 @@ fn ai_roots() -> Vec<PathBuf> {
         }
     }
     if let Some(local) = std::env::var_os("LOCALAPPDATA") {
-        roots.push(PathBuf::from(local).join("Tangelo").join("ai"));
+        roots.push(PathBuf::from(local).join("Cocoflow").join("ai"));
     }
     // the AI tools cannot open non-ASCII paths: reach them through an ASCII alias
     roots.into_iter().filter(|r| r.is_dir()).map(|r| crate::native::ascii_alias(&r)).collect()
@@ -141,7 +141,7 @@ fn search_dirs() -> Vec<PathBuf> {
         }
     }
     if let Some(local) = std::env::var_os("LOCALAPPDATA") {
-        dirs.push(PathBuf::from(local).join("Tangelo").join("bin"));
+        dirs.push(PathBuf::from(local).join("Cocoflow").join("bin"));
     }
     dirs
 }

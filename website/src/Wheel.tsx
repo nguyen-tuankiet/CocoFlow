@@ -67,7 +67,7 @@ export default function Wheel() {
   return (
     <div className="stage">
       <div className="wheel-box">
-        <svg viewBox="0 0 420 420" role="img" aria-label="Tangelo wheel">
+        <svg viewBox="0 0 420 420" role="img" aria-label="Cocoflow wheel">
           {m.slices.map(([badge, label, color], i) => {
             const a0 = i * step + 1.2, a1 = (i + 1) * step - 1.2;
             const [cx, cy] = polar(144, (a0 + a1) / 2);

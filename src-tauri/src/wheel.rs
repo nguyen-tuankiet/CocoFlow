@@ -75,10 +75,10 @@ fn current_mode() -> Option<u8> {
     }
 }
 
-/// Appends a line to %LOCALAPPDATA%\Tangelo\wheel.log (helps diagnosing "the wheel does not show").
+/// Appends a line to %LOCALAPPDATA%\Cocoflow\wheel.log (helps diagnosing "the wheel does not show").
 pub fn log(message: &str) {
     use std::io::Write;
-    let Some(dir) = std::env::var_os("LOCALAPPDATA").map(|d| std::path::PathBuf::from(d).join("Tangelo")) else { return };
+    let Some(dir) = std::env::var_os("LOCALAPPDATA").map(|d| std::path::PathBuf::from(d).join("Cocoflow")) else { return };
     let _ = std::fs::create_dir_all(&dir);
     let path = dir.join("wheel.log");
     // keep the file small

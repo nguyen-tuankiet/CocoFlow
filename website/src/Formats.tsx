@@ -1,85 +1,211 @@
+import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import { Alert, Statistic, Tabs } from "antd";
-import { AI, FORMAT, MODE_INFO, TOOLS, TYPES, targetsFor } from "./data";
-import type { FType, ModeKey } from "./data";
-import { FileBadge, Icon } from "./appicons";
+import { Button } from "antd";
+import {
+  ArrowRightOutlined,
+  CommentOutlined,
+  CustomerServiceOutlined,
+  ExpandOutlined,
+  FilePdfOutlined,
+  FileTextOutlined,
+  FileZipOutlined,
+  FolderOpenOutlined,
+  FundProjectionScreenOutlined,
+  GroupOutlined,
+  InfoCircleFilled,
+  PictureOutlined,
+  PlayCircleOutlined,
+  ShareAltOutlined,
+  StarOutlined,
+  SwapOutlined,
+  TableOutlined,
+  ToolOutlined,
+} from "@ant-design/icons";
+import { AI, AI_DESC, FORMAT, TOOLS, TOOL_DESC, TYPES, extOf, listsFor } from "./data";
+import type { FType } from "./data";
+import { Icon } from "./appicons";
 import { useT } from "./lang";
 
-const Chip = ({ icon, children, sub }: { icon: ReactNode; children: ReactNode; sub?: string }) => (
-  <span className="chip">
-    {icon}
-    <span>{children}</span>
-    {sub && <em>{sub}</em>}
-  </span>
-);
+const TYPE_ICON: Record<string, ReactNode> = {
+  image: <PictureOutlined />,
+  video: <PlayCircleOutlined />,
+  audio: <CustomerServiceOutlined />,
+  pdf: <FilePdfOutlined />,
+  document: <FileTextOutlined />,
+  sheet: <TableOutlined />,
+  slides: <FundProjectionScreenOutlined />,
+  archive: <FileZipOutlined />,
+  subtitle: <CommentOutlined />,
+};
 
-function Row({ mode, label, children }: { mode?: ModeKey; label?: string; children: ReactNode }) {
-  const { lang } = useT();
+const NOUN: Record<string, { vi: string; en: string }> = {
+  image: { vi: "ảnh", en: "an image" },
+  video: { vi: "video", en: "a video" },
+  audio: { vi: "âm thanh", en: "an audio" },
+  pdf: { vi: "PDF", en: "a PDF" },
+  document: { vi: "tài liệu", en: "a document" },
+  sheet: { vi: "bảng tính", en: "a spreadsheet" },
+  slides: { vi: "slide", en: "a slide" },
+  archive: { vi: "file nén", en: "an archive" },
+  subtitle: { vi: "phụ đề", en: "a subtitle" },
+};
+
+type Sel = { mode: "convert" | "tools" | "share" | "ai"; key: string };
+
+/** One plain row: an outline icon, the label, and the chips on a single line. */
+function Row({ icon, label, children }: { icon: ReactNode; label: string; children: ReactNode }) {
   return (
-    <div className="frow">
-      <div className="frow-label">
-        <b>{mode ? MODE_INFO[mode].label[lang] : label}</b>
-        {mode && <kbd>{MODE_INFO[mode].keys}</kbd>}
+    <div className="ft-row">
+      <div className="ft-label">
+        <span className="ft-icon">{icon}</span>
+        <b>{label}</b>
       </div>
-      <div className="frow-body">{children}</div>
+      <div className="ft-chips">{children}</div>
     </div>
   );
 }
 
 function Panel({ type }: { type: FType }) {
   const { lang, t } = useT();
+  const [src, setSrc] = useState(type.example.ext);
+  const lists = listsFor(type, src);
+  const shownTools = lists.tools.filter((k) => !type.hideTools?.includes(k));
+  const [sel, setSel] = useState<Sel>({ mode: "convert", key: lists.convert[0] });
+
+  // changing the source format changes what the wheel offers: keep the pick only if it is still there
+  useEffect(() => {
+    const ok =
+      (sel.mode === "convert" && lists.convert.includes(sel.key)) ||
+      (sel.mode === "tools" && lists.tools.includes(sel.key)) ||
+      (sel.mode === "ai" && lists.ai.includes(sel.key)) ||
+      (sel.mode === "share" && sel.key.startsWith("g") && Number(sel.key.slice(1)) < lists.share.length);
+    if (!ok) setSel({ mode: "convert", key: lists.convert[0] });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [src]);
+
+  const noun = NOUN[type.id][lang];
+  const base = type.example.name;
+  const on = (m: Sel["mode"], k: string) => (sel.mode === m && sel.key === k ? " on" : "");
+
+  // the result of the picked option
+  let outName = "", desc = "", toast = false;
+  if (sel.mode === "convert") {
+    outName = `${base}.${sel.key}`;
+    desc = t(`Chuyển ${src.toUpperCase()} sang ${FORMAT[sel.key]?.vi ?? sel.key.toUpperCase()}. File mới nằm cạnh file gốc.`, `Converts ${src.toUpperCase()} to ${FORMAT[sel.key]?.en ?? sel.key.toUpperCase()}. The new file lands next to the original.`);
+  } else if (sel.mode === "tools") {
+    const d = TOOLS[sel.key];
+    toast = !!d.toast;
+    outName = d.toast ? "" : `${base}${d.suffix}.${d.ext ?? src}`;
+    desc = TOOL_DESC[sel.key][lang];
+  } else if (sel.mode === "ai") {
+    const d = AI[sel.key];
+    outName = `${base}${d.suffix}.${d.ext ?? "txt"}`;
+    desc = AI_DESC[sel.key][lang];
+  } else {
+    const g = lists.share[Number(sel.key.slice(1))];
+    if (g) {
+      outName = `${base}${g.suffix}.${g.ext}`;
+      desc = t(`Tự tính cấu hình để phù hợp ${g.label.vi}: ${type.example.size} → ${g.sub}.`, `Works out the settings to suit ${g.label.en}: ${type.example.size} → ${g.sub}.`);
+    }
+  }
+
   return (
-    <div className="fpanel">
-      <div className="fpanel-head">
-        <FileBadge ext={type.example.ext} size={44} />
-        <div>
-          <b className="fpanel-title">{type.name[lang]}</b>
-          <div className="muted">{t(`Kéo một file .${type.example.ext} vào bánh xe, bạn sẽ thấy:`, `Drag a .${type.example.ext} file onto the wheel and you will see:`)}</div>
+    <div className="ft-card">
+      <div className="ft-banner">
+        <span className="ft-banner-icon">{TYPE_ICON[type.id]}</span>
+        <div className="ft-banner-text">
+          <h3>{type.name[lang]}</h3>
+          <p>{t(`Kéo một file ${noun} vào bánh xe, hoặc bấm vào các ô bên dưới để xem Cocoflow làm được gì.`, `Drag ${noun} file onto the wheel, or click the chips below to see what Cocoflow can do.`)}</p>
         </div>
+        <Button className="cta cta-sm" type="primary" icon={<FolderOpenOutlined />} href="#top">{t("Thử trong demo", "Try the demo")}</Button>
       </div>
 
-      <Row label={t("Đọc được", "Opens")}>
-        {type.inputs.map((i) => <span key={i} className="fmt">{i}</span>)}
-      </Row>
-      <Row mode="convert">
-        {targetsFor(type).map((e) => <Chip key={e} icon={<FileBadge ext={e} size={20} />}>{FORMAT[e][lang]}</Chip>)}
-      </Row>
-      {type.tools.length > 0 && (
-        <Row mode="tools">
-          {type.tools.map((k) => <Chip key={k} icon={<Icon name={TOOLS[k].icon} size={20} />}>{TOOLS[k].label[lang]}</Chip>)}
+      <div className="ft-rows">
+        <Row icon={<ExpandOutlined />} label={t("Đọc được", "Opens")}>
+          {type.inputs.map((i) => {
+            const e = extOf(i);
+            return (
+              <button key={i} type="button" className={`ft-pill${e === src ? " on" : ""}`} onClick={() => setSrc(e)}>{i}</button>
+            );
+          })}
         </Row>
-      )}
-      {type.multi && (
-        <Row label={t("Nhiều file", "Several files")}>
-          <span className="muted-body">{t("Chọn nhiều file rồi ", "Select several and ")}{type.multi[lang]}.</span>
+
+        <Row icon={<SwapOutlined />} label={t("Chuyển đổi", "Convert")}>
+          {lists.convert.map((e) => (
+            <button key={e} type="button" className={`ft-pill${on("convert", e)}`} onClick={() => setSel({ mode: "convert", key: e })}>{e.toUpperCase()}</button>
+          ))}
         </Row>
+
+        {shownTools.length > 0 && (
+          <Row icon={<ToolOutlined />} label={t("Công cụ", "Tools")}>
+            {shownTools.map((k) => (
+              <button key={k} type="button" className={`ft-tool${on("tools", k)}`} onClick={() => setSel({ mode: "tools", key: k })}>
+                <Icon name={TOOLS[k].icon} size={18} color="currentColor" />
+                {TOOLS[k].label[lang]}
+              </button>
+            ))}
+          </Row>
+        )}
+
+        {type.multi && (
+          <Row icon={<GroupOutlined />} label={t("Nhiều file", "Several files")}>
+            <span className="ft-text">{t("Chọn nhiều file rồi ", "Select several and ")}{type.multi[lang]}.</span>
+          </Row>
+        )}
+
+        {lists.share.length > 0 && (
+          <Row icon={<ShareAltOutlined />} label={t("Chia sẻ", "Share")}>
+            {lists.share.map((g, i) => (
+              <button key={g.label.vi} type="button" className={`ft-pill${on("share", `g${i}`)}`} onClick={() => setSel({ mode: "share", key: `g${i}` })}>
+                {g.label[lang]} {g.sub}
+              </button>
+            ))}
+          </Row>
+        )}
+
+        {lists.ai.length > 0 && (
+          <Row icon={<StarOutlined />} label={t("AI offline", "AI offline")}>
+            {lists.ai.map((k) => (
+              <button key={k} type="button" className={`ft-pill${on("ai", k)}`} onClick={() => setSel({ mode: "ai", key: k })}>
+                {AI[k].label[lang]}
+              </button>
+            ))}
+          </Row>
+        )}
+      </div>
+
+      <div className="ft-result" key={`${src}-${sel.mode}-${sel.key}`}>
+        <span className="ft-flow">
+          {base}.{src} <ArrowRightOutlined /> {toast ? t("thư mục cạnh file gốc", "folder next to the original") : outName}
+        </span>
+        <span className="ft-desc">{desc}</span>
+      </div>
+
+      {type.note && (
+        <div className="ft-note">
+          <InfoCircleFilled />
+          <span>{type.note[lang]}</span>
+        </div>
       )}
-      {type.share.length > 0 && (
-        <Row mode="share">
-          {type.share.map((g) => <Chip key={g.label.vi} icon={<Icon name={g.icon} size={20} />} sub={g.sub}>{g.label[lang]}</Chip>)}
-        </Row>
-      )}
-      {type.ai.length > 0 && (
-        <Row mode="ai">
-          {type.ai.map((k) => <Chip key={k} icon={<Icon name={AI[k].icon} size={20} />}>{AI[k].label[lang]}</Chip>)}
-        </Row>
-      )}
-      {type.note && <Alert type="info" showIcon message={type.note[lang]} style={{ marginTop: 16 }} />}
     </div>
   );
 }
 
 export default function Formats() {
-  const { lang, t } = useT();
+  const { lang } = useT();
+  const [active, setActive] = useState(TYPES[0].id);
+  const type = TYPES.find((x) => x.id === active) ?? TYPES[0];
   return (
-    <>
-      <div className="stats">
-        <Statistic value="60+" title={t("định dạng đọc được", "formats it opens")} />
-        <Statistic value="5" title={t("chế độ bánh xe", "wheel modes")} />
-        <Statistic value="17" title={t("mục tiêu nén sẵn", "ready-made size targets")} />
-        <Statistic value="5" title={t("công cụ AI chạy offline", "offline AI tools")} />
+    <div className="ft-wrap">
+      <div className="ft-tabs" role="tablist">
+        {TYPES.map((tp) => (
+          <button key={tp.id} type="button" role="tab" aria-selected={tp.id === active} className={`ft-tab${tp.id === active ? " on" : ""}`} onClick={() => setActive(tp.id)}>
+            {TYPE_ICON[tp.id]}
+            <span>{tp.name[lang]}</span>
+          </button>
+        ))}
       </div>
-      <Tabs centered size="large" items={TYPES.map((tp) => ({ key: tp.id, label: tp.name[lang], children: <Panel type={tp} /> }))} destroyOnHidden />
-    </>
+      <Panel type={type} key={type.id} />
+    </div>
   );
 }
