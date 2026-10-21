@@ -1,0 +1,92 @@
+name: Build and release
+
+# Every push or merge to main that changes the app builds both installers and publishes a GitHub Release.
+# The version is "<major>.<minor>" from src-tauri/tauri.conf.json plus the run number, e.g. 0.4.17, so nothing has to be
+# bumped by hand. Changes that only touch website/ do not build installers (Vercel redeploys the site on its own).
+#
+# One-time setup: publish the "tools-v1" pre-release made with scripts/pack-tools.ps1
+# (ffmpeg, Pandoc, ImageMagick, Ghostscript, 7-Zip, the AI models and LibreOffice are too big for git).
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "src-tauri/**"
+      - "public/**"
+      - "branding/**"
+      - "scripts/**"
+      - "index.html"
+      - "wheel.html"
+      - "package.json"
+      - "package-lock.json"
+      - "vite.config.ts"
+      - "tsconfig.json"
+      - ".github/workflows/release.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: true
+
+env:
+  TOOLS_TAG: tools-v1
+
+jobs:
+  release:
+    runs-on: windows-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Work out the version and write it into the build files
+        id: ver
+        shell: pwsh
+        run: |
+          $conf = Get-Content src-tauri/tauri.conf.json -Raw | ConvertFrom-Json
+          $parts = $conf.version.Split('.')
+          $version = "$($parts[0]).$($parts[1]).${{ github.run_number }}"
+          (Get-Content src-tauri/tauri.conf.json -Raw) -replace '"version":\s*"[^"]+"', "`"version`": `"$version`"" | Set-Content src-tauri/tauri.conf.json -NoNewline
+          (Get-Content src-tauri/Cargo.toml -Raw) -replace '(?m)^version = "[^"]+"', "version = `"$version`"" | Set-Content src-tauri/Cargo.toml -NoNewline
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "Building $version"
+
+      - name: Download the build tools
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          New-Item -ItemType Directory -Force tools, installer-bin, installer-extra | Out-Null
+          gh release download $env:TOOLS_TAG --repo $env:GITHUB_REPOSITORY --dir tools
+          if ($LASTEXITCODE -ne 0) { throw "Release '$env:TOOLS_TAG' was not found. Publish it first (see scripts/pack-tools.ps1)." }
+          7z x tools/tools-core.zip -oinstaller-bin -y -bso0
+          7z x tools/tools-ai.zip -oinstaller-bin -y -bso0
+          Copy-Item tools/libreoffice.7z installer-extra/libreoffice.7z
+          Remove-Item tools -Recurse -Force
+
+      - run: npm ci
+
+      - name: Build both installers
+        shell: pwsh
+        run: ./scripts/make-release.ps1 -SkipPortable
+
+      - name: Publish the release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $v = "${{ steps.ver.outputs.version }}"
+          gh release create "v$v" --repo $env:GITHUB_REPOSITORY --title "Cocoflow $v" --generate-notes `
+            "release/Cocoflow_${v}_x64-setup.exe" "release/Cocoflow_${v}_x64-full-setup.exe"

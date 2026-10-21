@@ -2,7 +2,7 @@ import { DownloadOutlined, SafetyOutlined, SettingOutlined, ThunderboltOutlined,
 import type { ReactNode } from "react";
 import { FileBadge } from "./appicons";
 import { useT } from "./lang";
-import { RELEASE, urlOf } from "./release";
+import { useRelease } from "./release";
 
 /** The Cocoflow wave (website/public/logo.png, made by scripts/make-icons.ps1). */
 export const Logo = ({ size = 30 }: { size?: number }) => (
@@ -11,7 +11,7 @@ export const Logo = ({ size = 30 }: { size?: number }) => (
 
 export default function Download() {
   const { t } = useT();
-  const f = RELEASE.files;
+  const rel = useRelease();
 
   const steps: { art: ReactNode; title: string; body: ReactNode }[] = [
     {
@@ -51,23 +51,23 @@ export default function Download() {
             <Logo size={64} />
             <div>
               <b>Cocoflow {t("cho Windows", "for Windows")}</b>
-              <span>v{RELEASE.version}</span>
+              <span>v{rel.version}</span>
             </div>
           </div>
 
           <div className="dl-choices">
-            <a className="dl-choice primary" href={urlOf("setup")}>
+            <a className="dl-choice primary" href={rel.setup.url}>
               <span className="dl-choice-icon"><WindowsFilled /></span>
               <span className="dl-choice-text">
-                <b>{t("Bản tiêu chuẩn", "Standard")} <em>{f.setup.size}</em></b>
+                <b>{t("Bản tiêu chuẩn", "Standard")} <em>{rel.setup.size}</em></b>
                 <small>{t("Chuyển đổi, nén, cắt, chỉnh sửa và AI offline", "Convert, compress, trim, edit and offline AI")}</small>
               </span>
               <DownloadOutlined className="dl-choice-dl" />
             </a>
-            <a className="dl-choice" href={urlOf("full")}>
+            <a className="dl-choice" href={rel.full.url}>
               <span className="dl-choice-icon"><WindowsFilled /></span>
               <span className="dl-choice-text">
-                <b>{t("Bản đầy đủ", "Full")} <em>{f.full.size}</em></b>
+                <b>{t("Bản đầy đủ", "Full")} <em>{rel.full.size}</em></b>
                 <small>{t("Thêm đổi slide PowerPoint và PDF sang PowerPoint (đã có sẵn LibreOffice)", "Adds PowerPoint slide and PDF-to-PowerPoint conversion (LibreOffice included)")}</small>
               </span>
               <DownloadOutlined className="dl-choice-dl" />

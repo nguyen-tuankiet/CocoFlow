@@ -10,7 +10,7 @@
 # It is not in the standard installer; it gets its own "full" installer. src-tauri\tauri.full.conf.json adds
 # installer-extra\ to the resources and src-tauri\installer-hooks.nsh unpacks the archive after installing
 # (NSIS cannot hold the unpacked 1 GB next to the rest of the app).
-param([switch]$SkipBuild)
+param([switch]$SkipBuild, [switch]$SkipPortable)
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
@@ -48,17 +48,19 @@ if (-not $SkipBuild -and (Test-Path "$root\installer-extra\libreoffice.7z")) {
     & "$PSScriptRoot\sign.ps1" $fullOut
 }
 
-# 2. portable zip: the exe plus the bundled tools
-$stage = Join-Path $root 'release\_portable'
-if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
-New-Item -ItemType Directory -Force "$stage\Cocoflow" | Out-Null
-Copy-Item "$root\src-tauri\target\release\cocoflow.exe" "$stage\Cocoflow\Cocoflow.exe"
-& "$PSScriptRoot\sign.ps1" "$stage\Cocoflow\Cocoflow.exe"
-Copy-Item "$root\installer-bin" "$stage\Cocoflow\bin" -Recurse
-$portable = Join-Path $out "Cocoflow_${version}_x64-portable.zip"
-if (Test-Path $portable) { Remove-Item $portable }
-Compress-Archive -Path "$stage\Cocoflow" -DestinationPath $portable -CompressionLevel Optimal
-Remove-Item $stage -Recurse -Force
+# 2. portable zip: the exe plus the bundled tools (skipped on CI, where only the installers are published)
+if (-not $SkipPortable) {
+    $stage = Join-Path $root 'release\_portable'
+    if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
+    New-Item -ItemType Directory -Force "$stage\Cocoflow" | Out-Null
+    Copy-Item "$root\src-tauri\target\release\cocoflow.exe" "$stage\Cocoflow\Cocoflow.exe"
+    & "$PSScriptRoot\sign.ps1" "$stage\Cocoflow\Cocoflow.exe"
+    Copy-Item "$root\installer-bin" "$stage\Cocoflow\bin" -Recurse
+    $portable = Join-Path $out "Cocoflow_${version}_x64-portable.zip"
+    if (Test-Path $portable) { Remove-Item $portable }
+    Compress-Archive -Path "$stage\Cocoflow" -DestinationPath $portable -CompressionLevel Optimal
+    Remove-Item $stage -Recurse -Force
+}
 
 # 3. checksums
 $sums = Get-ChildItem $out -File | Where-Object { $_.Extension -in '.exe', '.zip' } | ForEach-Object {

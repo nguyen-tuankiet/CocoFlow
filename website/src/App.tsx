@@ -22,7 +22,6 @@ import LangSwitch from "./LangSwitch";
 import AppWindow, { TrimDialog } from "./AppWindow";
 import { Feature, NewTag } from "./Showcase";
 import { useT } from "./lang";
-import { RELEASE } from "./release";
 import { StepFiles, StepModes, StepResult } from "./StepArt";
 
 const { Title, Paragraph, Text } = Typography;
@@ -37,7 +36,6 @@ const Head = ({ eyebrow, title, lead }: { eyebrow: ReactNode; title: ReactNode; 
 
 export default function App() {
   const { t } = useT();
-  const f = RELEASE.files;
 
   const steps = [
     { title: t("Chọn file", "Pick a file"), body: t("Kéo một hoặc nhiều file từ Explorer hay màn hình desktop.", "Drag one or more files from Explorer or the desktop."), art: <StepFiles /> },
