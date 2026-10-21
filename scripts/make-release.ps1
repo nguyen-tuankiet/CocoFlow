@@ -20,6 +20,12 @@ $version = (Get-Content "$root\src-tauri\tauri.conf.json" -Raw | ConvertFrom-Jso
 $out = Join-Path $root 'release'
 New-Item -ItemType Directory -Force $out | Out-Null
 
+# ImageMagick ships eight statically linked programs of ~30 MB each; Cocoflow only runs magick.exe
+# (even "identify" is called as `magick identify`), so the other seven are dead weight in the installer.
+foreach ($extra in 'mogrify', 'stream', 'identify', 'montage', 'conjure', 'compare', 'composite') {
+    Remove-Item -LiteralPath "$root\installer-bin\magick\$extra.exe" -Force -ErrorAction SilentlyContinue
+}
+
 if (-not $SkipBuild) {
     foreach ($tool in 'ffmpeg.exe', 'pandoc', 'magick', 'gs', '7zip', 'ai') {
         if (-not (Test-Path "$root\installer-bin\$tool")) { throw "installer-bin\$tool is missing" }

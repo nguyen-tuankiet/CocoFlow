@@ -14,6 +14,7 @@
     "windows": [
       {
         "label": "main",
+        "additionalBrowserArgs": "--disable-gpu --disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection",
         "title": "Cocoflow",
         "url": "index.html",
         "width": 980,
@@ -26,6 +27,7 @@
       },
       {
         "label": "wheel",
+        "additionalBrowserArgs": "--disable-gpu --disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection",
         "title": "Cocoflow Wheel",
         "url": "wheel.html",
         "width": 480,
