@@ -1,13 +1,23 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import type { VercelRequest } from "@vercel/node";
-import { Redis } from "@upstash/redis";
+import { createClient } from "redis";
 
-// The Upstash integration in Vercel injects KV_REST_API_*; a database made by hand on Upstash uses UPSTASH_REDIS_REST_*.
-export function connect(): Redis {
-  const url = process.env.KV_REST_API_URL ?? process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.KV_REST_API_TOKEN ?? process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (!url || !token) throw new Error("Redis is not configured (KV_REST_API_URL / KV_REST_API_TOKEN)");
-  return new Redis({ url, token });
+export type Redis = ReturnType<typeof makeClient>;
+
+const makeClient = (url: string) => createClient({ url, socket: { connectTimeout: 5000, reconnectStrategy: false } });
+
+// Vercel's Redis integration provides REDIS_URL. A serverless function lives for one request, so it connects, works and quits.
+export async function withRedis<T>(run: (redis: Redis) => Promise<T>): Promise<T> {
+  const url = process.env.REDIS_URL;
+  if (!url) throw new Error("Redis is not configured (REDIS_URL)");
+  const redis = makeClient(url);
+  redis.on("error", () => {}); // failures surface as rejected commands
+  await redis.connect();
+  try {
+    return await run(redis);
+  } finally {
+    redis.disconnect().catch(() => {});
+  }
 }
 
 export const KEEP = 60 * 60 * 24 * 400; // daily counters expire after ~13 months

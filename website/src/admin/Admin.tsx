@@ -36,7 +36,7 @@ async function fetchStats(key: string, days: number): Promise<Stats> {
   const r = await fetch(`/api/stats?days=${days}`, { headers: { "x-admin-key": key } });
   if (r.status === 401) throw new Error("Sai mật khẩu.");
   if (r.status === 429) throw new Error("Nhập sai quá nhiều lần. Thử lại sau 15 phút.");
-  if (!r.ok) throw new Error("Không lấy được số liệu. Kiểm tra database Upstash và biến môi trường trên Vercel.");
+  if (!r.ok) throw new Error("Không lấy được số liệu. Kiểm tra database Redis đã Connect vào project và đã Redeploy.");
   return r.json();
 }
 

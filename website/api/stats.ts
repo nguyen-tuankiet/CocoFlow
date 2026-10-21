@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { connect, dayKey, ipHash, limit, passwordOk } from "./_lib.js";
+import { dayKey, ipHash, limit, passwordOk, withRedis } from "./_lib.js";
 
 // Numbers for the admin page. Protected by the ADMIN_PASSWORD environment variable.
 const num = (v: unknown) => (typeof v === "number" ? v : Number(v) || 0);
@@ -24,29 +24,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("X-Robots-Tag", "noindex");
   if (req.method !== "GET") return res.status(405).end();
 
-  const redis = connect();
-  if (!passwordOk(req.headers["x-admin-key"] as string | undefined)) {
-    // wrong guesses are limited so the password cannot be brute-forced
-    const allowed = await limit(redis, `bf:${ipHash(req)}`, 10, 900);
-    return res.status(allowed ? 401 : 429).json({ error: allowed ? "unauthorized" : "too_many_attempts" });
-  }
-
   const span = Math.min(90, Math.max(1, Number(req.query.days) || 30));
   const days: string[] = [];
   for (let i = span - 1; i >= 0; i--) days.push(dayKey(new Date(Date.now() - i * 86400000)));
 
-  const p = redis.pipeline();
-  for (const d of days) {
-    p.get(`v:${d}`);
-    p.pfcount(`u:${d}`);
-    p.hgetall(`d:${d}`);
-    p.hgetall(`c:${d}`);
-    p.hgetall(`r:${d}`);
-    p.hgetall(`dev:${d}`);
-  }
-  p.get("t:views");
-  p.hgetall("t:dl");
-  const r = (await p.exec()) as unknown[];
+  const r = await withRedis(async (redis) => {
+    if (!passwordOk(req.headers["x-admin-key"] as string | undefined)) {
+      // wrong guesses are limited so the password cannot be brute-forced
+      const allowed = await limit(redis, `bf:${ipHash(req)}`, 10, 900);
+      res.status(allowed ? 401 : 429).json({ error: allowed ? "unauthorized" : "too_many_attempts" });
+      return null;
+    }
+    const p = redis.multi();
+    for (const d of days) {
+      p.get(`v:${d}`);
+      p.pfCount(`u:${d}`);
+      p.hGetAll(`d:${d}`);
+      p.hGetAll(`c:${d}`);
+      p.hGetAll(`r:${d}`);
+      p.hGetAll(`dev:${d}`);
+    }
+    p.get("t:views");
+    p.hGetAll("t:dl");
+    return (await p.exec()) as unknown[];
+  });
+  if (!r) return;
 
   const countries: Record<string, number> = {};
   const referrers: Record<string, number> = {};

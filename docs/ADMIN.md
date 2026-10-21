@@ -7,7 +7,7 @@ download buttons, countries, traffic sources, devices and the real download coun
 
 | Number | Where it comes from |
 |---|---|
-| Views, visitors, download-button clicks, countries, sources, devices | The landing page sends one anonymous event per visit / button click to `/api/track` (`website/api/track.ts`). Counts are stored in an Upstash Redis database. |
+| Views, visitors, download-button clicks, countries, sources, devices | The landing page sends one anonymous event per visit / button click to `/api/track` (`website/api/track.ts`). Counts are stored in a Redis database (Vercel Storage). |
 | Real downloads per release | Read straight from the GitHub Releases API by the admin page (GitHub counts every download of the `.exe` files). |
 
 Privacy: no IP address, cookie or user id is stored. A visitor is a hash of IP + browser + date + a secret that changes every
@@ -15,8 +15,8 @@ day, so the same person cannot be followed from one day to the next. Bots are ig
 
 ## One-time setup on Vercel
 
-1. Vercel dashboard → your project → **Storage** → **Create Database** → **Upstash (Redis)** → free plan → connect it to the
-   project (it adds `KV_REST_API_URL` and `KV_REST_API_TOKEN` by itself).
+1. Vercel dashboard → your project → **Storage** → **Create Database** → **Redis** → free plan → **Connect** it to the
+   project, leaving the "Custom Environment Variable Prefix" empty (it adds `REDIS_URL` by itself).
 2. Project → **Settings → Environment Variables** → add `ADMIN_PASSWORD` with a long random password (20+ characters;
    this is the only thing protecting the page).
 3. **Deployments → Redeploy** so the functions pick the variables up.
