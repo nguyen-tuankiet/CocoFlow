@@ -1,6 +1,6 @@
 # Admin page (visitor and download statistics)
 
-The website has a private page at `/admin` (file `website/admin.html`) that shows page views, visitors, clicks on the
+The website has a private page at `/admin` (file `website/admin.html`) that shows page views, clicks on the
 download buttons, countries, traffic sources, devices and the real download counts of each release.
 
 ## How it works

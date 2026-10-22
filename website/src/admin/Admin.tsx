@@ -55,11 +55,11 @@ async function fetchReleases(): Promise<Release[]> {
     }));
 }
 
-function Bars({ series, pick, tint }: { series: Day[]; pick: (d: Day) => { back?: number; front: number }; tint: string }) {
+function Bars({ series, pick, tint, unit }: { series: Day[]; pick: (d: Day) => number; tint: string; unit: string }) {
   const [hover, setHover] = useState<number | null>(null);
   const W = 640;
   const H = 150;
-  const max = Math.max(1, ...series.map((d) => Math.max(pick(d).back ?? 0, pick(d).front)));
+  const max = Math.max(1, ...series.map(pick));
   const slot = W / series.length;
   const bw = Math.max(2, slot * 0.7);
   const y = (n: number) => H - (n / max) * (H - 6);
@@ -67,7 +67,7 @@ function Bars({ series, pick, tint }: { series: Day[]; pick: (d: Day) => { back?
   return (
     <div>
       <div className="ad-read">
-        {hd ? `${hd.day}: ${nf.format(pick(hd).front)}${pick(hd).back !== undefined ? ` · ${nf.format(pick(hd).back!)} lượt xem` : ""}` : `Cao nhất ${nf.format(max)} mỗi ngày`}
+        {hd ? `${hd.day}: ${nf.format(pick(hd))} ${unit}` : `Cao nhất ${nf.format(max)} ${unit} mỗi ngày`}
       </div>
       <svg viewBox={`0 0 ${W} ${H + 2}`} width="100%" role="img" onMouseLeave={() => setHover(null)}>
         {series.map((d, i) => {
@@ -76,8 +76,7 @@ function Bars({ series, pick, tint }: { series: Day[]; pick: (d: Day) => { back?
           return (
             <g key={d.day} onMouseEnter={() => setHover(i)}>
               <rect x={i * slot} y={0} width={slot} height={H} fill="transparent" />
-              {v.back !== undefined && <rect x={x} y={y(v.back)} width={bw} height={H - y(v.back)} rx={2} fill={tint} opacity={0.28} />}
-              <rect x={x} y={y(v.front)} width={bw} height={H - y(v.front)} rx={2} fill={tint} opacity={hover === i ? 1 : 0.9} />
+              <rect x={x} y={y(v)} width={bw} height={H - y(v)} rx={2} fill={tint} opacity={hover === i ? 1 : 0.9} />
             </g>
           );
         })}
@@ -190,7 +189,6 @@ function Dashboard({ pass, onLogout }: { pass: string; onLogout: () => void }) {
                 <h2>Người xem trang web</h2>
                 <div className="ad-cards">
                   <Stat title="Lượt xem trang" value={stats.totals.views} unit="lượt" what="Số lần trang chủ được mở." period={`${stats.days} ngày qua`} />
-                  <Stat title="Số khách" value={stats.totals.visitors} unit="người" what="Mỗi người tính 1 lần mỗi ngày, rồi cộng các ngày lại." period={`${stats.days} ngày qua`} />
                 </div>
               </section>
               <section className="ad-group">
@@ -200,7 +198,7 @@ function Dashboard({ pass, onLogout }: { pass: string; onLogout: () => void }) {
                     title="Bấm nút Tải trên web"
                     value={stats.totals.clicks}
                     unit="lần"
-                    what={`Người xem bấm nút Tải về trên trang này${stats.totals.visitors ? ` (${Math.round((stats.totals.clicks / stats.totals.visitors) * 100)}% số khách)` : ""}.`}
+                    what={`Người xem bấm nút Tải về trên trang này${stats.totals.views ? ` (${Math.round((stats.totals.clicks / stats.totals.views) * 100)}% lượt xem)` : ""}.`}
                     period={`${stats.days} ngày qua`}
                   />
                   <Stat
@@ -219,18 +217,14 @@ function Dashboard({ pass, onLogout }: { pass: string; onLogout: () => void }) {
               <div className="ad-chart-head">
                 <h3>Lượt xem mỗi ngày</h3>
               </div>
-              <Bars series={stats.series} pick={(d) => ({ back: d.views, front: d.visitors })} tint="#3f6df6" />
-              <div className="ad-legend">
-                <span><i style={{ background: "#3f6df6", opacity: 0.28 }} />Lượt xem</span>
-                <span><i style={{ background: "#3f6df6" }} />Khách truy cập</span>
-              </div>
+              <Bars series={stats.series} pick={(d) => d.views} tint="#3f6df6" unit="lượt xem" />
             </div>
 
             <div className="ad-card">
               <div className="ad-chart-head">
                 <h3>Lượt bấm nút Tải mỗi ngày</h3>
               </div>
-              <Bars series={stats.series} pick={(d) => ({ front: d.downloads })} tint="#0ea5a4" />
+              <Bars series={stats.series} pick={(d) => d.downloads} tint="#0ea5a4" unit="lượt bấm" />
               <div className="ad-legend">
                 <span>Bản tiêu chuẩn: {nf.format(stats.series.reduce((a, d) => a + d.setup, 0))}</span>
                 <span>Bản đầy đủ: {nf.format(stats.series.reduce((a, d) => a + d.full, 0))}</span>
