@@ -19,7 +19,7 @@ export function LangProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>(initial);
   useEffect(() => {
     document.documentElement.lang = lang;
-    document.title = lang === "vi" ? "Cocoflow – Kéo file, thả vào bánh xe" : "Cocoflow – Drag a file, drop it on the wheel";
+    document.title = "Cocoflow";
   }, [lang]);
   const setLang = (l: Lang) => {
     setLangState(l);
