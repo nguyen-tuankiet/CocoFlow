@@ -115,11 +115,17 @@ function Rows({ rows, label }: { rows: Row[]; label: (k: string) => string }) {
   );
 }
 
-const Stat = ({ title, value, note }: { title: string; value: number | string; note: string }) => (
+// One number with its unit, what it counts and the period it covers, so no two cards look like the same thing.
+const Stat = ({ title, value, unit, what, period, allTime }: { title: string; value: number | string; unit: string; what: string; period: string; allTime?: boolean }) => (
   <div className="ad-card ad-stat">
-    <small>{title}</small>
-    <b>{typeof value === "number" ? nf.format(value) : value}</b>
-    <span>{note}</span>
+    <div className="ad-stat-top">
+      <small>{title}</small>
+      <em className={allTime ? "all" : ""}>{period}</em>
+    </div>
+    <b>
+      {typeof value === "number" ? nf.format(value) : value} <i>{unit}</i>
+    </b>
+    <span>{what}</span>
   </div>
 );
 
@@ -179,11 +185,34 @@ function Dashboard({ pass, onLogout }: { pass: string; onLogout: () => void }) {
         {!stats && loading && <Spin style={{ margin: "60px auto" }} />}
         {stats && (
           <>
-            <div className="ad-cards">
-              <Stat title={`Lượt xem (${stats.days} ngày)`} value={stats.totals.views} note={`Tổng từ đầu: ${nf.format(stats.allTime.views)}`} />
-              <Stat title="Khách truy cập" value={stats.totals.visitors} note="Mỗi người tính một lần mỗi ngày" />
-              <Stat title="Lượt bấm nút Tải" value={stats.totals.clicks} note={`Từ đầu: ${nf.format(stats.allTime.setup + stats.allTime.full)}`} />
-              <Stat title="Lượt tải thực (GitHub)" value={releases ? ghTotal : "—"} note="Tổng các bản đã phát hành" />
+            <div className="ad-groups">
+              <section className="ad-group">
+                <h2>Người xem trang web</h2>
+                <div className="ad-cards">
+                  <Stat title="Lượt xem trang" value={stats.totals.views} unit="lượt" what="Số lần trang chủ được mở." period={`${stats.days} ngày qua`} />
+                  <Stat title="Số khách" value={stats.totals.visitors} unit="người" what="Mỗi người tính 1 lần mỗi ngày, rồi cộng các ngày lại." period={`${stats.days} ngày qua`} />
+                </div>
+              </section>
+              <section className="ad-group">
+                <h2>Tải ứng dụng</h2>
+                <div className="ad-cards">
+                  <Stat
+                    title="Bấm nút Tải trên web"
+                    value={stats.totals.clicks}
+                    unit="lần"
+                    what={`Người xem bấm nút Tải về trên trang này${stats.totals.visitors ? ` (${Math.round((stats.totals.clicks / stats.totals.visitors) * 100)}% số khách)` : ""}.`}
+                    period={`${stats.days} ngày qua`}
+                  />
+                  <Stat
+                    title="File cài đặt đã tải"
+                    value={releases ? ghTotal : "—"}
+                    unit="lượt"
+                    what="Do GitHub đếm, gồm cả tải qua trang web lẫn link gửi trực tiếp."
+                    period="Từ trước đến nay"
+                    allTime
+                  />
+                </div>
+              </section>
             </div>
 
             <div className="ad-card">

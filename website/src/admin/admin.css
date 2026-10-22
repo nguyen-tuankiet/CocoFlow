@@ -75,9 +75,21 @@ body {
   gap: 16px;
 }
 
+.ad-groups {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+.ad-group h2 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  letter-spacing: 0.02em;
+}
 .ad-cards {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
 .ad-card {
@@ -91,20 +103,50 @@ body {
   font-size: 14px;
   font-weight: 600;
 }
+.ad-stat-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 8px;
+}
 .ad-stat small {
-  color: #6b7280;
+  color: #111827;
   font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.ad-stat em {
+  flex: none;
+  font-style: normal;
+  font-size: 11px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #eaf0ff;
+  color: #2f56d8;
+}
+.ad-stat em.all {
+  background: #eef0f3;
+  color: #4b5563;
 }
 .ad-stat b {
   display: block;
-  font-size: 28px;
+  font-size: 30px;
   line-height: 1.2;
-  margin: 4px 0 2px;
+  margin: 10px 0 6px;
   font-variant-numeric: tabular-nums;
 }
+.ad-stat b i {
+  font-style: normal;
+  font-size: 13px;
+  font-weight: 400;
+  color: #6b7280;
+}
 .ad-stat span {
-  color: #9ca3af;
+  display: block;
+  color: #6b7280;
   font-size: 12px;
+  line-height: 1.45;
 }
 
 .ad-grid {
@@ -202,8 +244,8 @@ body {
 }
 
 @media (max-width: 860px) {
-  .ad-cards {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .ad-groups {
+    grid-template-columns: 1fr;
   }
   .ad-grid {
     grid-template-columns: 1fr;
