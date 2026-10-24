@@ -12,6 +12,7 @@ on:
     paths:
       - "src/**"
       - "release-notes.md"
+      - "website/src/scan/engine/**"
       - "src-tauri/**"
       - "public/**"
       - "branding/**"
