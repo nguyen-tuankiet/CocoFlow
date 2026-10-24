@@ -4,6 +4,7 @@ import { convertFileSrc } from "@tauri-apps/api/core";
 import { MediaInfo, mediaInfo, pdfInfo, previewFile, runOption } from "./api";
 import { icon } from "./icons";
 import { getLang, t } from "./i18n";
+import { scanEditor } from "./scan";
 
 export interface EditorRequest {
   paths: string[];
@@ -11,11 +12,13 @@ export interface EditorRequest {
   tool: string;
 }
 
-interface Ctl {
+export interface Ctl {
   /** Enable or disable the Start button. */
   valid(ok: boolean): void;
   /** Called when Start is pressed; returns the tool parameters. */
   onSubmit(fn: () => Record<string, string>): void;
+  /** Instead of onSubmit: does the whole job itself when Start is pressed. */
+  onRun(fn: () => Promise<void>): void;
 }
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
@@ -77,6 +80,7 @@ function onKey(e: KeyboardEvent) {
 const TITLES: Record<string, string> = {
   trim: "ed.trim.title",
   crop: "ed.crop.title",
+  scan: "ed.scan.title",
   split: "ed.split.title",
   resize: "ed.resize.title",
   transcribe: "ed.transcribe.title",
@@ -104,15 +108,18 @@ export async function openEditor(req: EditorRequest) {
   const go = root.querySelector<HTMLButtonElement>(".go")!;
   const msg = root.querySelector<HTMLElement>(".ed-msg")!;
   let submit: (() => Record<string, string>) | null = null;
+  let runner: (() => Promise<void>) | null = null;
   const ctl: Ctl = {
     valid: (ok) => (go.disabled = !ok),
     onSubmit: (fn) => (submit = fn),
+    onRun: (fn) => (runner = fn),
   };
   go.addEventListener("click", async () => {
-    if (!submit) return;
+    if (!submit && !runner) return;
     go.disabled = true;
     try {
-      await runOption(req.paths, `${req.tool === "transcribe" ? "ai" : "tool"}:${req.tool}`, submit());
+      if (runner) await runner();
+      else await runOption(req.paths, `${req.tool === "transcribe" ? "ai" : "tool"}:${req.tool}`, submit!());
       closeEditor();
     } catch (e) {
       msg.textContent = String(e);
@@ -126,6 +133,7 @@ export async function openEditor(req: EditorRequest) {
     if (req.tool === "resize") await resizeEditor(req, body, ctl);
     else if (req.tool === "transcribe") transcribeEditor(body, ctl);
     else if (req.tool === "crop") await cropEditor(first, req.kind, body, ctl);
+    else if (req.tool === "scan") await scanEditor(first, body, ctl);
     else if (req.tool === "trim") await timeEditor(first, req.kind, body, ctl, "trim");
     else if (req.tool === "split" && req.kind === "pdf") await pdfSplitEditor(first, body, ctl);
     else if (req.tool === "split") await timeEditor(first, req.kind, body, ctl, "split");

@@ -15,12 +15,13 @@ function initial(): Lang {
   return (navigator.language || "vi").toLowerCase().startsWith("vi") ? "vi" : "en";
 }
 
-export function LangProvider({ children }: { children: ReactNode }) {
+/** `title` overrides the default page title (used by pages other than the home page). */
+export function LangProvider({ children, title }: { children: ReactNode; title?: { vi: string; en: string } }) {
   const [lang, setLangState] = useState<Lang>(initial);
   useEffect(() => {
     document.documentElement.lang = lang;
-    document.title = lang === "vi" ? "Cocoflow – Thao tác chuyển đổi file trong tích tắc" : "Cocoflow – File conversion in a flash";
-  }, [lang]);
+    document.title = title ? title[lang] : lang === "vi" ? "Cocoflow – Thao tác chuyển đổi file trong tích tắc" : "Cocoflow – File conversion in a flash";
+  }, [lang, title]);
   const setLang = (l: Lang) => {
     setLangState(l);
     try {

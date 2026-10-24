@@ -655,6 +655,13 @@ fn number(p: &Params, key: &str) -> Result<u32, String> {
         .ok_or_else(|| format!("Missing or invalid value: {key}"))
 }
 
+fn decimal(p: &Params, key: &str) -> Result<f64, String> {
+    param(p, key)
+        .and_then(|v| v.parse::<f64>().ok())
+        .filter(|v| v.is_finite() && v.abs() < 1.0e6)
+        .ok_or_else(|| format!("Missing or invalid value: {key}"))
+}
+
 /// Page ranges such as "1-3,5,8-": digits, dashes and commas only (the text goes to Ghostscript).
 fn clean_pages(text: &str) -> Result<String, String> {
     let t: String = text.chars().filter(|c| !c.is_whitespace()).collect();
@@ -741,6 +748,58 @@ pub fn tool_params(kind: Kind, id: &str, input: &Path, eng: &Engines, p: &Params
                 ];
                 ffmpeg_cmd(eng, &[input], &pre, unique(&dir, &format!("{stem}_crop"), "mp4"))
             }
+        }
+        // A photographed page straightened into a rectangle: the four corners the user placed (top-left, top-right,
+        // bottom-right, bottom-left, in pixels of the picture) are stretched onto a w x h canvas.
+        (Kind::Image, "scan") => {
+            let program = eng.magick.clone().ok_or("ImageMagick was not found")?;
+            let (w, h) = (number(p, "w")?, number(p, "h")?);
+            if !(16..=12000).contains(&w) || !(16..=12000).contains(&h) {
+                return Err("The scan area is empty".into());
+            }
+            let mut pairs = String::new();
+            let targets = [(0, 0), (w, 0), (w, h), (0, h)];
+            for (i, (tx, ty)) in targets.iter().enumerate() {
+                let (x, y) = (decimal(p, &format!("x{i}"))?, decimal(p, &format!("y{i}"))?);
+                pairs.push_str(&format!("{x:.1},{y:.1} {tx},{ty} "));
+            }
+            let out_ext = if matches!(ext.as_str(), "png" | "webp") { ext.clone() } else { "jpg".to_string() };
+            let output = unique(&dir, &format!("{stem}_scan"), &out_ext);
+            let mut args: Vec<OsString> = vec![input.into()];
+            args.extend(os(&["-auto-orient", "-virtual-pixel", "white", "-define", &format!("distort:viewport={w}x{h}+0+0")]));
+            // Lanczos keeps the edges of the letters sharper than the default filter
+            args.extend(os(&["-filter", "Lanczos", "-distort", "Perspective", pairs.trim_end(), "+repage"]));
+            let look = param(p, "look").unwrap_or("color");
+            if look == "clear" || look == "bw" {
+                // Divide by a heavy blur of the page itself: uneven light and shadows disappear, paper turns white.
+                let sigma = (w.max(h) / 35).max(8);
+                args.extend(os(&["-colorspace", "Gray", "(", "+clone", "-blur", &format!("0x{sigma}"), ")", "-compose", "Divide_Src", "-composite"]));
+                args.extend(os(&["-compose", "Over"]));
+                if look == "bw" {
+                    args.extend(os(&["-level", "20%,98%", "-threshold", "84%"]));
+                } else {
+                    args.extend(os(&["-level", "15%,92%", "-unsharp", "0x1.0+0.9+0.02"]));
+                }
+            } else if look == "white" {
+                // White paper: each colour channel is divided by the brightness of the paper around it, so shadows and a
+                // colour cast disappear, the paper turns white and the ink keeps its colour. The paper level comes from a
+                // second copy of the page whose edges are extended (instead of white), shrunk, with the brightest
+                // neighbour kept (text is thin), blurred and enlarged again.
+                let mut level: Vec<OsString> = vec!["(".into(), input.into()];
+                level.extend(os(&["-auto-orient", "-virtual-pixel", "edge", "-define", &format!("distort:viewport={w}x{h}+0+0")]));
+                level.extend(os(&["-filter", "Triangle", "-distort", "Perspective", pairs.trim_end(), "+repage"]));
+                level.extend(os(&["-resize", "20%", "-morphology", "Dilate", "Disk:5", "-blur", "0x4", "-resize", &format!("{w}x{h}!"), ")"]));
+                args.extend(level);
+                args.extend(os(&["-compose", "Divide_Src", "-composite", "-compose", "Over", "-level", "0%,94%", "-unsharp", "0x1.0+0.9+0.02"]));
+            } else {
+                // original colours: a light unsharp mask makes up for the resampling
+                args.extend(os(&["-unsharp", "0x1.0+0.9+0.02"]));
+            }
+            if out_ext == "jpg" {
+                args.extend(os(&["-sampling-factor", "4:4:4", "-quality", "95"]));
+            }
+            args.push(output.clone().into());
+            Ok(Cmd::run(program, args, output))
         }
         (Kind::Video | Kind::Audio, "split") => {
             let fast = flag(p, "fast");
@@ -1417,6 +1476,33 @@ mod tests {
 
     fn count_files(dir: &Path) -> usize {
         std::fs::read_dir(dir).unwrap().flatten().filter(|e| e.path().is_file()).count()
+    }
+
+    #[test]
+    fn scan_document_straightens_a_quad() {
+        let Some(media) = media() else { return };
+        let eng = Engines::detect();
+        if eng.magick.is_none() {
+            eprintln!("ImageMagick not found, skipping");
+            return;
+        }
+        let dir = scratch("scan");
+        let image = copy_in(&media.join("pic.png"), &dir); // 800x600
+        let quad = |look: &str| {
+            params(&[
+                ("x0", "60"), ("y0", "40"), ("x1", "700"), ("y1", "70"), ("x2", "740"), ("y2", "540"), ("x3", "30"), ("y3", "560"),
+                ("w", "500"), ("h", "400"), ("look", look),
+            ])
+        };
+        for look in ["color", "white", "clear", "bw"] {
+            let out = run_ok(tool_params(Kind::Image, "scan", &image, &eng, &quad(look)).unwrap());
+            assert_eq!(dims(&eng, &out), (500, 400), "look {look}");
+            assert!(out.file_name().unwrap().to_string_lossy().contains("_scan"));
+        }
+        assert!(tool_params(Kind::Image, "scan", &image, &eng, &params(&[("w", "0"), ("h", "10")])).is_err());
+        let mut missing = quad("color");
+        missing.remove("x2");
+        assert!(tool_params(Kind::Image, "scan", &image, &eng, &missing).is_err());
     }
 
     #[test]

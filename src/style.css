@@ -881,3 +881,125 @@ header {
 .update-get:hover {
   filter: brightness(1.08);
 }
+
+.update-more {
+  border: 1px solid var(--accent);
+  border-radius: 9px;
+  padding: 4px 12px;
+  background: transparent;
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+
+.update-more:hover {
+  background: var(--card);
+}
+
+/* what's new window */
+.notes-dialog {
+  width: min(560px, calc(100vw - 32px));
+}
+
+.notes-body section + section {
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+
+.notes-body h4 {
+  margin: 0 0 6px;
+  font-size: 14.5px;
+}
+
+.notes-body h4 small {
+  margin-left: 6px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.notes-body h5 {
+  margin: 10px 0 4px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.notes-body ul {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  line-height: 1.45;
+}
+
+.notes-dialog footer .grow {
+  flex: 1;
+}
+
+/* scan document */
+.scan {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.scan-pane {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.scan-stage {
+  position: relative;
+  background: #0d1428;
+  user-select: none;
+  touch-action: none;
+}
+
+.scan-stage img {
+  display: block;
+  pointer-events: none;
+}
+
+.scan-svg {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+}
+
+.scan-dim {
+  fill: rgba(8, 14, 36, 0.5);
+  pointer-events: none;
+}
+
+.scan-poly {
+  fill: rgba(255, 255, 255, 0.04);
+  stroke: #fff;
+  stroke-width: 2;
+  cursor: move;
+}
+
+.scan-h {
+  fill: #fff;
+  stroke: var(--accent);
+  stroke-width: 3;
+  cursor: grab;
+  touch-action: none;
+}
+
+.scan-result {
+  background: repeating-conic-gradient(#e9eef8 0 25%, #f6f8fc 0 50%) 0 0 / 16px 16px;
+  line-height: 0;
+  border: 1px solid var(--line);
+}
+
+.scan-result[hidden] {
+  display: none;
+}
+
+.scan-out {
+  max-width: 100%;
+  display: block;
+}

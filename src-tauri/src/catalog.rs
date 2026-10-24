@@ -222,6 +222,13 @@ fn tool_options(kind: Kind, ext: &str, count: usize, eng: &Engines) -> Vec<Optio
             if count == 1 {
                 v.push(opt("edit:crop", "Crop…", "✂️"));
             }
+            if eng.magick.is_some() {
+                // straightens the page by itself; the second one lets the user place the four corners
+                v.push(opt("edit:autoscan", "Straighten document", "📄"));
+                if count == 1 {
+                    v.push(opt("edit:scan", "Straighten (adjust corners)…", "📐"));
+                }
+            }
             v.push(opt("tool:rotate-right", "Rotate right", "↻"));
             v.push(opt("tool:rotate-left", "Rotate left", "↺"));
             v.push(opt("tool:flip", "Flip", "↔️"));

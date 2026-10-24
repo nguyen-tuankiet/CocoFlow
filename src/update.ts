@@ -1,6 +1,6 @@
 import { getVersion } from "@tauri-apps/api/app";
 import { notifyUpdate, openReleasePage } from "./api";
-import { t } from "./i18n";
+import { getLang, t } from "./i18n";
 
 // Asks GitHub which release is the newest and tells the user when it is newer than the installed one.
 // Only this one request leaves the PC (to api.github.com, no file or personal data); the switch in the header turns it off.
@@ -38,21 +38,40 @@ export function isNewer(a: string, b: string): boolean {
   return false;
 }
 
+/** What one release changed, as published on GitHub. */
+export interface ReleaseNotes {
+  version: string;
+  /** Publication date (ISO). */
+  date: string;
+  /** The release text (Markdown), with a "## Tiếng Việt" and a "## English" part when written by hand. */
+  body: string;
+}
+
 export interface Update {
   version: string;
   url: string;
+  /** Every release newer than the installed version, newest first. */
+  notes: ReleaseNotes[];
 }
 
 let current: Update | null = null;
 let installed = "";
 let onChange: (u: Update | null) => void = () => {};
 
-async function latest(): Promise<Update | null> {
-  const r = await fetch(`https://api.github.com/repos/${REPO}/releases/latest`, { headers: { Accept: "application/vnd.github+json" } });
+type Release = { tag_name?: string; html_url?: string; body?: string | null; published_at?: string; draft?: boolean; prerelease?: boolean };
+
+/** The newest release, with the notes of all releases newer than `installed` (one request for the last 20). */
+async function latest(installed: string): Promise<Update | null> {
+  const r = await fetch(`https://api.github.com/repos/${REPO}/releases?per_page=20`, { headers: { Accept: "application/vnd.github+json" } });
   if (!r.ok) return null;
-  const j = (await r.json()) as { tag_name?: string; html_url?: string };
-  if (!j.tag_name || !j.html_url) return null;
-  return { version: j.tag_name.replace(/^v/i, ""), url: j.html_url };
+  // only the app's own releases (the tools archive is a pre-release with another kind of tag)
+  const list = ((await r.json()) as Release[]).filter((x) => !x.draft && !x.prerelease && x.tag_name && x.html_url && /^v?\d+(\.\d+)+$/i.test(x.tag_name));
+  const version = (x: Release) => x.tag_name!.replace(/^v/i, "");
+  list.sort((a, b) => (isNewer(version(a), version(b)) ? -1 : isNewer(version(b), version(a)) ? 1 : 0));
+  const newest = list[0];
+  if (!newest) return null;
+  const notes = list.filter((x) => isNewer(version(x), installed)).map((x) => ({ version: version(x), date: x.published_at ?? "", body: x.body ?? "" }));
+  return { version: version(newest), url: newest.html_url!, notes };
 }
 
 /** Checks now (`force`) or only when the last check is older than six hours. Never throws: offline is normal. */
@@ -61,7 +80,7 @@ export async function checkForUpdate(force = false) {
   if (!force && Date.now() - Number(read(KEY.last) ?? 0) < EVERY) return;
   try {
     installed ||= await getVersion();
-    const found = await latest();
+    const found = await latest(installed);
     write(KEY.last, String(Date.now()));
     if (!found || !isNewer(found.version, installed)) return setCurrent(null);
     setCurrent(found);
@@ -96,3 +115,33 @@ export function startUpdates(render: (u: Update | null) => void) {
 }
 
 export const bannerText = (u: Update) => t("update.available", { v: u.version });
+
+/**
+ * The changes of one release as a list of plain lines in the user's language: the part under "## Tiếng Việt" or
+ * "## English" when the notes have both, otherwise all of it. GitHub's "Full Changelog" link is left out. Each item is
+ * { heading: true } for a "###" title, otherwise a bullet; **bold** is kept as a marker for the renderer.
+ */
+export function noteLines(body: string): { text: string; heading: boolean }[] {
+  const lines = body.replace(/\r/g, "").split("\n");
+  const want = getLang() === "vi" ? /^##\s*tiếng việt/i : /^##\s*english/i;
+  const start = lines.findIndex((l) => want.test(l.trim()));
+  let part = lines;
+  if (start >= 0) {
+    const end = lines.findIndex((l, i) => i > start && /^##\s/.test(l.trim()) && !/^###/.test(l.trim()));
+    part = lines.slice(start + 1, end < 0 ? undefined : end);
+  }
+  return part
+    .map((l) => l.trim())
+    .filter((l) => l && !/full changelog/i.test(l) && !/^<!--.*-->$/.test(l) && !/^##\s/.test(l))
+    .map((l) => {
+      const heading = /^#{3,}\s/.test(l);
+      const text = l
+        .replace(/^#{3,}\s*/, "")
+        .replace(/^[-*]\s+/, "")
+        .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+        .replace(/https?:\/\/\S+/g, "")
+        .trim();
+      return { text, heading };
+    })
+    .filter((l) => l.text);
+}

@@ -16,6 +16,7 @@ const PATHS: Record<string, string> = {
   compress: `<path d="M8 4l4 4 4-4M8 20l4-4 4 4M4 12h16"/>`,
   resize: `<path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/>`,
   crop: `<path d="M6 2v14a2 2 0 002 2h14M2 6h14a2 2 0 012 2v14"/>`,
+  scan: `<path d="M4 8V6a2 2 0 012-2h2M16 4h2a2 2 0 012 2v2M20 16v2a2 2 0 01-2 2h-2M8 20H6a2 2 0 01-2-2v-2"/><path d="M8 8.5h8M8 12h8M8 15.5h5"/>`,
   rotate: `<path d="M20 11a8 8 0 10-2.3 5.7"/><path d="M20 4.5V11h-6.5"/>`,
   "rotate-left": `<g transform="translate(24 0) scale(-1 1)"><path d="M20 11a8 8 0 10-2.3 5.7"/><path d="M20 4.5V11h-6.5"/></g>`,
   flip: `<path d="M12 3v18"/><path d="M8.5 7L3.5 12l5 5V7zM15.5 7l5 5-5 5V7z"/>`,
@@ -67,7 +68,7 @@ const TOOL_ICON: Record<string, string> = {
   p1080: "resize", p720: "resize", p480: "resize", "rotate-right": "rotate", "rotate-left": "rotate-left",
   flip: "flip", grayscale: "gray", mute: "mute", frame: "frame", normalize: "normalize",
   "trim-silence": "scissors", faster: "speed", extract: "extract", zip: "archive",
-  resize: "resize", trim: "scissors", crop: "crop", split: "split", transcribe: "captions",
+  resize: "resize", trim: "scissors", crop: "crop", scan: "scan", autoscan: "scan", split: "split", transcribe: "captions",
 };
 
 const AI_ICON: Record<string, string> = {
@@ -151,7 +152,7 @@ export const FORMAT_LABEL: Record<string, string> = {
 };
 
 const TOOL_COLOR: Record<string, string> = {
-  convert: PALETTE.violet, compress: PALETTE.teal, resize: PALETTE.blue, crop: PALETTE.violet,
+  convert: PALETTE.violet, compress: PALETTE.teal, resize: PALETTE.blue, crop: PALETTE.violet, scan: PALETTE.teal,
   rotate: PALETTE.orange, "rotate-left": PALETTE.orange, flip: PALETTE.violet, gray: PALETTE.slate,
   mute: PALETTE.red, frame: PALETTE.teal, normalize: PALETTE.green, scissors: PALETTE.orange,
   speed: PALETTE.deepOrange, merge: PALETTE.blue, split: PALETTE.teal, extract: PALETTE.amber, archive: PALETTE.amber,

@@ -163,6 +163,8 @@ impl Strings {
             ("trim", true) => "Cắt đoạn",
             ("crop", false) => "Crop",
             ("crop", true) => "Cắt khung hình",
+            ("scan", false) => "Straighten document",
+            ("scan", true) => "Làm thẳng tài liệu",
             ("split", false) => "Split",
             ("split", true) => "Tách file",
             (other, _) => other,

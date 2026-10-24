@@ -11,6 +11,7 @@ on:
     branches: [main]
     paths:
       - "src/**"
+      - "release-notes.md"
       - "src-tauri/**"
       - "public/**"
       - "branding/**"
@@ -115,6 +116,11 @@ jobs:
     needs: [version, build]
     runs-on: ubuntu-latest
     steps:
+      # the history and tags, to tell whether release-notes.md changed since the previous release
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - uses: actions/download-artifact@v4
         with:
           pattern: installer-*
@@ -126,5 +132,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           v="${{ needs.version.outputs.version }}"
-          gh release create "v$v" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "Cocoflow $v" --generate-notes \
+          # What's new (shown in the app): release-notes.md when it was rewritten since the previous release,
+          # otherwise the subjects of the commits that changed the app
+          prev=$(git tag --list 'v[0-9]*' --sort=-v:refname | head -n 1)
+          if [ -z "$prev" ] || ! git diff --quiet "$prev" HEAD -- release-notes.md; then
+            cp release-notes.md notes.md
+          else
+            git log --no-merges --format='- %s' "$prev"..HEAD -- src src-tauri public index.html wheel.html > notes.md
+          fi
+          gh release create "v$v" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "Cocoflow $v" --notes-file notes.md \
             "release/Cocoflow_${v}_x64-setup.exe" "release/Cocoflow_${v}_x64-full-setup.exe"

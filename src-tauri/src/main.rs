@@ -65,7 +65,7 @@ struct EditorRequest {
 
 /// Tools that need the options window (or parameters) instead of running right away.
 fn needs_params(id: &str) -> bool {
-    matches!(id, "trim" | "crop" | "split" | "resize")
+    matches!(id, "trim" | "crop" | "split" | "resize" | "scan")
 }
 
 #[tauri::command]
@@ -88,10 +88,16 @@ fn run_option(
 
     match family {
         "edit" => {
-            // Trim, crop, split and resize are set up in the main window, with a preview.
-            show_main(&app);
             let request = EditorRequest { paths: strings, kind: kind.name().to_string(), tool: id.to_string() };
-            let _ = app.emit_to("main", "open-editor", request);
+            if id == "autoscan" {
+                // Finds the page and straightens it without asking anything: the (hidden) main window does the
+                // analysis and then queues the job, so no window needs to appear.
+                let _ = app.emit_to("main", "auto-scan", request);
+            } else {
+                // Trim, crop, split and resize are set up in the main window, with a preview.
+                show_main(&app);
+                let _ = app.emit_to("main", "open-editor", request);
+            }
         }
         "action" => {
             let id = id.to_string();
@@ -262,6 +268,56 @@ fn open_release_page(url: String) -> Result<(), String> {
         .map_err(|e| e.to_string())
 }
 
+/// Percent-decoding of a header value (the web UI sends the photo's path with encodeURIComponent).
+fn percent_decode(s: &str) -> String {
+    let b = s.as_bytes();
+    let mut out = Vec::with_capacity(b.len());
+    let mut i = 0;
+    while i < b.len() {
+        if b[i] == b'%' && i + 2 < b.len() {
+            let hex = std::str::from_utf8(&b[i + 1..i + 3]).ok();
+            if let Some(v) = hex.and_then(|h| u8::from_str_radix(h, 16).ok()) {
+                out.push(v);
+                i += 3;
+                continue;
+            }
+        }
+        out.push(b[i]);
+        i += 1;
+    }
+    String::from_utf8_lossy(&out).into_owned()
+}
+
+/// Saves a page straightened by the web UI (the request body is the encoded image) next to the photo it came from,
+/// as `<name>_scan.jpg|png`, through the job queue so it shows in Activity and ends with a notification.
+#[tauri::command]
+fn save_scan(app: AppHandle, request: tauri::ipc::Request<'_>) -> Result<(), String> {
+    let tauri::ipc::InvokeBody::Raw(bytes) = request.body() else {
+        return Err("Expected the image bytes".into());
+    };
+    let header = |key: &str| request.headers().get(key).and_then(|v| v.to_str().ok()).map(percent_decode);
+    let source = PathBuf::from(header("x-source").ok_or("Missing source")?);
+    // only next to a photo that exists, with a fixed name: the web UI cannot write anywhere else
+    if !source.is_file() {
+        return Err("The photo was not found".into());
+    }
+    let ext = if header("x-ext").as_deref() == Some("png") { "png" } else { "jpg" };
+    let dir = source.parent().map(PathBuf::from).unwrap_or_default();
+    let stem = source.file_stem().map(|s| s.to_string_lossy().into_owned()).unwrap_or_else(|| "scan".into());
+    let output = plan::unique(&dir, &format!("{stem}_scan"), ext);
+    let data = bytes.clone();
+    let target = output.clone();
+    let title = format!("{} · {}", file_name(&source), i18n::get().tool_name("scan"));
+    jobs::submit_cmd(&app, title, Ok(plan::Cmd::native(output, move || std::fs::write(&target, &data).map_err(|e| e.to_string()))));
+    Ok(())
+}
+
+/// A Windows notification with text made by the web UI (already in the user's language).
+#[tauri::command]
+fn notify_text(app: AppHandle, title: String, body: String) {
+    jobs::notify(&app, &title, &body);
+}
+
 #[tauri::command]
 fn notify_update(app: AppHandle, version: String) {
     let s = i18n::get();
@@ -404,6 +460,8 @@ fn main() {
             reveal,
             open_release_page,
             notify_update,
+            notify_text,
+            save_scan,
             hide_wheel,
             js_log,
             set_detection,

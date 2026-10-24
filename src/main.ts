@@ -26,8 +26,10 @@ import {
   setAutostart,
   setDetection,
 } from "./api";
+import { autoScan } from "./autoscan";
 import { EditorRequest, openEditor } from "./editor";
 import { Update, bannerText, checkForUpdate, download, setUpdatesEnabled, skipUpdate, startUpdates, updatesEnabled } from "./update";
+import { showUpdateNotes } from "./updatenotes";
 import {
   LangSetting,
   chooseLanguage,
@@ -256,6 +258,8 @@ await listen<string[]>("files-added", (event) => void addFiles(event.payload));
 
 // ---- editors (trim, crop, split, resize) are opened by the wheel or the option grid ----
 await listen<EditorRequest>("open-editor", (event) => void openEditor(event.payload));
+// "Scan document" straightens the page by itself, without a window
+await listen<EditorRequest>("auto-scan", (event) => void autoScan(event.payload.paths));
 
 // ---- settings, language, engines ----
 await initLanguage();
@@ -280,6 +284,7 @@ function renderUpdate(u: Update | null) {
 }
 
 $("update-get").addEventListener("click", () => pendingUpdate && download(pendingUpdate));
+$("update-notes").addEventListener("click", () => pendingUpdate && showUpdateNotes(pendingUpdate));
 $("update-skip").addEventListener("click", () => pendingUpdate && skipUpdate(pendingUpdate));
 const updateCheckEl = $<HTMLInputElement>("update-check");
 updateCheckEl.checked = updatesEnabled();

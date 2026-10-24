@@ -76,6 +76,7 @@ export default function App() {
             <a className="hide-s" href="#how">{t("Cách dùng", "How it works")}</a>
             <a className="hide-s" href="#features">{t("Tính năng", "Features")}</a>
             <a className="hide-s" href="#highlights">{t("Nổi bật", "Highlights")}</a>
+            <a className="hide-s" href="./scan">{t("Làm thẳng tài liệu", "Straighten a document")}</a>
             <a className="hide-s" href="#faq">FAQ</a>
             <LangSwitch />
             <Button type="primary" className="cta cta-sm" icon={<DownloadOutlined />} href="#download">{t("Tải về", "Download")}</Button>
@@ -247,6 +248,7 @@ export default function App() {
               <a href="#features">{t("Chuyển đổi định dạng", "Convert formats")}</a>
               <a href="#highlights">{t("Nén để chia sẻ", "Shrink to share")}</a>
               <a href="#highlights">{t("AI chạy offline", "Offline AI")}</a>
+              <a href="./scan">{t("Làm thẳng ảnh tài liệu", "Straighten document photos")}</a>
             </div>
             <div className="foot-col">
               <h4><SettingOutlined /> {t("Cách dùng", "How it works")}</h4>

@@ -71,6 +71,11 @@ export const reveal =(path: string) => invoke<void>("reveal", { path });
 export const openReleasePage = (url: string) => invoke<void>("open_release_page", { url });
 /** Shows a Windows notification that a newer version exists. */
 export const notifyUpdate = (version: string) => invoke<void>("notify_update", { version });
+/** Saves a straightened page next to its photo (as <name>_scan.jpg or .png), as a job in Activity. */
+export const saveScan = (source: string, image: Uint8Array, ext: "jpg" | "png") =>
+  invoke<void>("save_scan", image, { headers: { "x-source": encodeURIComponent(source), "x-ext": ext } });
+/** Shows a Windows notification with the given texts. */
+export const notifyText = (title: string, body: string) => invoke<void>("notify_text", { title, body });
 export const hideWheel = () => invoke<void>("hide_wheel");
 export const setDetection = (enabled: boolean) => invoke<void>("set_detection", { enabled });
 export const setAnyApp = (enabled: boolean) => invoke<void>("set_any_app", { enabled });
