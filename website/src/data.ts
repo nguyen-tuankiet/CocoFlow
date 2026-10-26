@@ -16,7 +16,7 @@ export const MODE_INFO: Record<ModeKey, { label: L; keys: string }> = {
 
 /** Friendly format names shown under the badge. */
 export const FORMAT: Record<string, L> = {
-  png: L("Ảnh PNG", "PNG image"), jpg: L("Ảnh JPEG", "JPEG image"), webp: L("Ảnh WebP", "WebP image"), avif: L("Ảnh AVIF", "AVIF image"),
+  png: L("Ảnh PNG", "PNG image"), jpg: L("Ảnh JPEG", "JPEG image"), jfif: L("Ảnh JFIF", "JFIF image"), webp: L("Ảnh WebP", "WebP image"), avif: L("Ảnh AVIF", "AVIF image"),
   bmp: L("Ảnh BMP", "BMP image"), tiff: L("Ảnh TIFF", "TIFF image"), ico: L("Biểu tượng", "Icon"), gif: L("GIF động", "Animated GIF"),
   mp4: L("Video MP4", "MP4 video"), mkv: L("Video MKV", "MKV video"), webm: L("Video WebM", "WebM video"), mov: L("QuickTime", "QuickTime"),
   avi: L("Video AVI", "AVI video"), wmv: L("Video WMV", "WMV video"),
@@ -93,8 +93,8 @@ export type FType = {
 export const TYPES: FType[] = [
   {
     id: "image", name: L("Ảnh", "Images"), example: { name: "anh-da-lat", ext: "png", size: "4 MB" },
-    inputs: ["PNG", "JPG", "WebP", "BMP", "GIF", "TIFF", "ICO", "AVIF", "HEIC", "SVG", "PSD"],
-    convert: ["png", "jpg", "webp", "avif", "bmp", "gif", "tiff", "ico", "pdf"],
+    inputs: ["PNG", "JPG", "JFIF", "WebP", "BMP", "GIF", "TIFF", "ICO", "AVIF", "HEIC", "SVG", "PSD"],
+    convert: ["png", "jpg", "jfif", "webp", "avif", "bmp", "gif", "tiff", "ico", "pdf"],
     tools: ["compress", "resize", "crop", "rotate-right", "rotate-left", "flip", "grayscale", "zip"],
     share: [
       G("Zalo · Chat", "Zalo · Chat", "≤ 1 MB", "chat", "-zalo", "jpg"), G("Email", "Email", "≤ 500 KB", "mail", "-email", "jpg"),
@@ -232,7 +232,7 @@ export const extOf = (label: string): string => {
 /** What the wheel offers for a given kind of file once the source format is known (mirrors catalog.rs). */
 export function listsFor(type: FType, ext: string) {
   const magick = type.id === "image" && ["heic", "svg", "psd"].includes(ext); // these need ImageMagick
-  const convert = magick ? ["png", "jpg", "webp", "pdf"] : type.convert.filter((x) => x !== ext);
+  const convert = magick ? ["png", "jpg", "jfif", "webp", "pdf"] : type.convert.filter((x) => x !== ext);
   let tools = type.tools;
   if (type.id === "image") {
     if (magick) tools = ["zip"];

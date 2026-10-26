@@ -23,6 +23,9 @@ pub static ANY_APP: AtomicBool = AtomicBool::new(true);
 static SHOWN: AtomicBool = AtomicBool::new(false);
 /// Set once the wheel received a drag-enter with real files; the wheel then stops following the cursor.
 pub static LOCKED: AtomicBool = AtomicBool::new(false);
+/// Set when the drag under way carries no files (text dragged in Word, a link in a browser…): the wheel has moved
+/// out of the way and stays away until the mouse button is released, so the other app gets its own drop.
+static STEPPED_ASIDE: AtomicBool = AtomicBool::new(false);
 
 const MODES: [&str; 5] = ["convert", "tools", "actions", "share", "ai"];
 
@@ -155,6 +158,15 @@ pub fn init(app: &AppHandle) {
     park(app);
 }
 
+/// The drag under the wheel has no files, so the wheel cannot use it: get out of the way at once so the drop lands
+/// in the app below (Ctrl+drag to copy text in Word, for example), and stay away for this drag.
+fn step_aside(app: &AppHandle) {
+    if !STEPPED_ASIDE.swap(true, Ordering::SeqCst) {
+        log("drag without files: wheel steps aside");
+    }
+    hide(app);
+}
+
 pub fn hide(app: &AppHandle) {
     LOCKED.store(false, Ordering::SeqCst);
     if SHOWN.swap(false, Ordering::SeqCst) {
@@ -185,6 +197,8 @@ fn watch(app: AppHandle) {
         // Last mode announced to the wheel page; pressing a modifier again switches mode even
         // if the user already picked another mode with the mouse.
         let mut announced: Option<u8> = None;
+        // When and where the wheel appeared under the cursor during this drag.
+        let mut shown_at: Option<(Instant, POINT)> = None;
 
         loop {
             std::thread::sleep(Duration::from_millis(12));
@@ -202,16 +216,30 @@ fn watch(app: AppHandle) {
                 press = pt;
                 let class = class_at(pt);
                 armed = !SHOWN.load(Ordering::SeqCst) && is_source_allowed(&class);
+                STEPPED_ASIDE.store(false, Ordering::SeqCst);
                 if current_mode().is_some() {
                     log(&format!("press with modifier over class '{class}' armed={armed}"));
                 }
                 dragging = false;
                 released_at = None;
                 announced = None;
+                shown_at = None;
             }
-            if down && armed {
+            if down && armed && !STEPPED_ASIDE.load(Ordering::SeqCst) {
                 if !dragging && ((pt.x - press.x).pow(2) + (pt.y - press.y).pow(2)) > 36 {
                     dragging = true;
+                }
+                // A drag of files reaches the wheel (Tauri's drag-enter) as soon as the mouse moves over it. When
+                // the mouse has clearly moved and nothing came, the drag carries no files (text in Word, a selection
+                // being made): Tauri ignores such drags, but the wheel would still swallow the drop (Ctrl+drag to
+                // copy text would do nothing), so it gets out of the way until the button is released.
+                if let Some((t, at)) = shown_at {
+                    let moved = (pt.x - at.x).pow(2) + (pt.y - at.y).pow(2) > 144;
+                    if !LOCKED.load(Ordering::SeqCst) && moved && t.elapsed() > Duration::from_millis(150) {
+                        step_aside(&app);
+                        was_down = down;
+                        continue;
+                    }
                 }
                 if dragging {
                     match current_mode() {
@@ -222,6 +250,7 @@ fn watch(app: AppHandle) {
                             let first = !SHOWN.swap(true, Ordering::SeqCst);
                             if first {
                                 log(&format!("wheel shown at {},{} mode={mode}", pt.x, pt.y));
+                                shown_at = Some((Instant::now(), pt));
                             }
                             if announced != Some(mode) {
                                 announced = Some(mode);

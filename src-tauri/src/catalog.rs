@@ -51,7 +51,7 @@ pub fn kind_of(path: &Path) -> Kind {
         return Kind::Folder;
     }
     match ext_of(path).as_str() {
-        "png" | "jpg" | "jpeg" | "webp" | "bmp" | "gif" | "tif" | "tiff" | "ico" | "avif" | "heic" | "heif"
+        "png" | "jpg" | "jpeg" | "jfif" | "webp" | "bmp" | "gif" | "tif" | "tiff" | "ico" | "avif" | "heic" | "heif"
         | "svg" | "psd" => Kind::Image,
         "mp4" | "mkv" | "mov" | "avi" | "webm" | "wmv" | "flv" | "m4v" | "mpg" | "mpeg" | "ts" | "3gp" => {
             Kind::Video
@@ -114,9 +114,9 @@ fn convert_targets(kind: Kind, ext: &str, eng: &Engines) -> Vec<&'static str> {
     let ff = eng.ffmpeg.is_some();
     let list: Vec<&'static str> = match kind {
         Kind::Image if needs_magick(ext) && eng.magick.is_none() => vec![],
-        Kind::Image if needs_magick(ext) => vec!["png", "jpg", "webp", "pdf"],
+        Kind::Image if needs_magick(ext) => vec!["png", "jpg", "jfif", "webp", "pdf"],
         Kind::Image if ff => {
-            let mut v = vec!["png", "jpg", "webp", "avif", "bmp", "gif", "tiff", "ico"];
+            let mut v = vec!["png", "jpg", "jfif", "webp", "avif", "bmp", "gif", "tiff", "ico"];
             if eng.magick.is_some() {
                 v.push("pdf");
             }
@@ -215,7 +215,7 @@ fn tool_options(kind: Kind, ext: &str, count: usize, eng: &Engines) -> Vec<Optio
     let ff = eng.ffmpeg.is_some();
     match kind {
         Kind::Image if ff && !needs_magick(ext) => {
-            if matches!(ext, "jpg" | "jpeg" | "png" | "webp") {
+            if matches!(ext, "jpg" | "jpeg" | "jfif" | "png" | "webp") {
                 v.push(opt("tool:compress", "Compress", "🗜️"));
             }
             v.push(opt("edit:resize", "Resize…", "📐"));

@@ -224,7 +224,7 @@ fn image_to_size(
     let output = unique(dir, &format!("{stem}{suffix}"), ext);
     let (source, out) = (input.to_path_buf(), output.clone());
     let prefix = crate::plan::still_prefix(input, !webp);
-    let jpeg_in = matches!(ext_of(input).as_str(), "jpg" | "jpeg");
+    let jpeg_in = matches!(ext_of(input).as_str(), "jpg" | "jpeg" | "jfif");
     Ok(Cmd::native(output, move || {
         let ladder: &[&str] = if webp { &["92", "82", "72", "62", "52", "42", "32"] } else { &["2", "4", "6", "9", "13", "18", "24"] };
         let flag = if webp { "-quality" } else { "-q:v" };

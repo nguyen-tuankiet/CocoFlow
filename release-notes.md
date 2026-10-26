@@ -4,14 +4,10 @@ and replace the content for each new release. -->
 
 ## Tiếng Việt
 
-- **Làm thẳng tài liệu** (mới): chụp một trang giấy bằng điện thoại rồi chọn "Làm thẳng tài liệu". Cocoflow tự tìm trang, chỉnh cho thẳng, kéo phẳng các dòng chữ bị cong theo tờ giấy, làm nền trắng và lưu thành `<tên>_scan.jpg` cạnh ảnh gốc.
-- Chữ của tờ giấy khác lọt vào góc ảnh được tự động xoá.
-- **Làm thẳng, chỉnh góc…**: muốn tự đặt bốn góc thì dùng mục này, có xem trước kết quả.
-- Thông báo bản mới có thêm nút **Có gì mới** để xem bản mới thay đổi những gì trước khi tải.
+- Sửa lỗi: khi Cocoflow đang chạy, giữ Ctrl rồi kéo một đoạn chữ đã bôi đen để chép nhanh trong Word (hoặc ứng dụng khác) không còn bị chặn nữa. Bánh xe chỉ hiện khi bạn kéo file.
+- Thêm định dạng **JFIF**: mở, chuyển, nén ảnh .jfif như ảnh JPEG và có thể chuyển ảnh khác sang JFIF.
 
 ## English
 
-- **Straighten document** (new): photograph a page with your phone and choose "Straighten document". Cocoflow finds the page, straightens it, flattens lines of text that bend with the paper, whitens the background and saves `<name>_scan.jpg` next to the photo.
-- Text from another sheet that shows in a corner of the photo is removed automatically.
-- **Straighten (adjust corners)…** lets you place the four corners yourself, with a preview.
-- The new-version notice has a **What's new** button that lists what changed before you download.
+- Fix: while Cocoflow is running, Ctrl+dragging selected text to copy it in Word (or another app) works again. The wheel only steps in for files.
+- **JFIF** support: .jfif pictures can be converted and compressed like JPEG, and other pictures can be converted to JFIF.

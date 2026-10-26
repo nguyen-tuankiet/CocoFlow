@@ -155,8 +155,9 @@ fn orientation_filter(orientation: u8) -> Option<&'static str> {
 pub(crate) const FLATTEN_ON_WHITE: &str =
     "split[bg][fg];[bg]drawbox=x=0:y=0:w=iw:h=ih:color=white:t=fill[wbg];[wbg][fg]overlay=format=auto";
 
+/// JPEG pictures; .jfif is the same format under another extension.
 fn is_jpeg(path: &Path) -> bool {
-    matches!(ext_of(path).as_str(), "jpg" | "jpeg")
+    matches!(ext_of(path).as_str(), "jpg" | "jpeg" | "jfif")
 }
 
 fn may_have_alpha(path: &Path) -> bool {
@@ -188,7 +189,7 @@ pub(crate) fn ffmpeg_cmd_in(eng: &Engines, input_opts: &[&str], inputs: &[&Path]
 
     // Still pictures: apply EXIF rotation ourselves (and keep ffmpeg from rotating twice).
     let single_image = inputs.len() == 1
-        && matches!(ext_of(inputs[0]).as_str(), "jpg" | "jpeg" | "png" | "webp" | "gif" | "tif" | "tiff" | "avif" | "ico" | "bmp");
+        && matches!(ext_of(inputs[0]).as_str(), "jpg" | "jpeg" | "jfif" | "png" | "webp" | "gif" | "tif" | "tiff" | "avif" | "ico" | "bmp");
     if single_image {
         let to_jpeg = is_jpeg(&output);
         if let Some(prefix) = still_prefix(inputs[0], to_jpeg) {
@@ -210,6 +211,10 @@ pub(crate) fn ffmpeg_cmd_in(eng: &Engines, input_opts: &[&str], inputs: &[&Path]
         args.push(input.into());
     }
     args.extend(pre.iter().map(OsString::from));
+    // ffmpeg does not know the .jfif extension: it is a JPEG picture
+    if ext_of(&output) == "jfif" {
+        args.extend(os(&["-f", "image2", "-c:v", "mjpeg"]));
+    }
     args.push(output.clone().into());
     Ok(Cmd { program, args, output, mkdir: None, ffmpeg: true, before: vec![], temp: vec![], native: None })
 }
@@ -455,10 +460,17 @@ fn convert_inner(kind: Kind, target: &str, input: &Path, eng: &Engines, dir: &Pa
             }
             args.push(input.into());
             args.push("-auto-orient".into());
-            if target == "jpg" {
+            if matches!(target, "jpg" | "jfif") {
                 args.extend(os(&["-background", "white", "-flatten"]));
             }
-            args.push(output.clone().into());
+            if target == "jfif" {
+                // ImageMagick does not know the .jfif extension either
+                let mut out = OsString::from("jpeg:");
+                out.push(&output);
+                args.push(out);
+            } else {
+                args.push(output.clone().into());
+            }
             Ok(Cmd::run(program, args, output))
         }
         Kind::Image => {
@@ -468,7 +480,7 @@ fn convert_inner(kind: Kind, target: &str, input: &Path, eng: &Engines, dir: &Pa
                 pre.extend(["-frames:v", "1", "-update", "1"]);
             }
             match target {
-                "jpg" => pre.extend(["-q:v", "2"]),
+                "jpg" | "jfif" => pre.extend(["-q:v", "2"]),
                 "avif" => pre.extend(["-c:v", "libaom-av1", "-crf", "30", "-b:v", "0", "-cpu-used", "6", "-still-picture", "1"]),
                 "ico" => pre.extend([
                     "-vf",
@@ -546,10 +558,10 @@ pub fn tool(kind: Kind, id: &str, input: &Path, eng: &Engines) -> Result<Cmd, St
         (Kind::Image, _) => {
             let (suffix, pre): (&str, Vec<&str>) = match id {
                 "compress" => match in_ext_out.as_str() {
-                    "jpg" => ("_compressed", vec!["-q:v", "5"]),
+                    "jpg" | "jfif" => ("_compressed", vec!["-q:v", "5"]),
                     "png" => ("_compressed", vec!["-compression_level", "9"]),
                     "webp" => ("_compressed", vec!["-quality", "70"]),
-                    _ => return Err("Compress supports jpg, png and webp".into()),
+                    _ => return Err("Compress supports jpg, jfif, png and webp".into()),
                 },
                 "half" => ("_half", vec!["-vf", "scale=trunc(iw/4)*2:trunc(ih/4)*2"]),
                 "max1920" => ("_1920", vec!["-vf", "scale='min(1920,iw)':-2"]),
@@ -1077,6 +1089,31 @@ mod tests {
             }
         }
         assert!(failures.is_empty(), "failed options: {failures:?}");
+    }
+
+    #[test]
+    fn jfif_is_written_as_jpeg_and_read_back() {
+        let Some(media) = media() else {
+            eprintln!("COCOFLOW_TEST_MEDIA not set, skipping");
+            return;
+        };
+        let eng = Engines::detect();
+        let dir = scratch("jfif");
+        let is_jpeg = |p: &Path| std::fs::read(p).unwrap().starts_with(&[0xFF, 0xD8, 0xFF]);
+        // PNG → JFIF with ffmpeg, SVG → JFIF with ImageMagick
+        let png = copy_in(&media.join("pic.png"), &dir);
+        let jfif = run_ok(convert(Kind::Image, "jfif", &png, &eng).unwrap());
+        assert_eq!(ext_of(&jfif), "jfif");
+        assert!(is_jpeg(&jfif), "not a JPEG: {}", jfif.display());
+        let svg = copy_in(&media.join("vector.svg"), &dir);
+        let from_svg = run_ok(convert(Kind::Image, "jfif", &svg, &eng).unwrap());
+        assert!(is_jpeg(&from_svg), "not a JPEG: {}", from_svg.display());
+        // a .jfif file is an image that can be converted and compressed like a JPEG
+        assert_eq!(crate::catalog::kind_of(&jfif), Kind::Image);
+        let back = run_ok(convert(Kind::Image, "png", &jfif, &eng).unwrap());
+        assert!(std::fs::read(&back).unwrap().starts_with(&[0x89, b'P', b'N', b'G']));
+        let small = run_ok(tool(Kind::Image, "compress", &jfif, &eng).unwrap());
+        assert!(is_jpeg(&small), "compressed JFIF is not a JPEG");
     }
 
     #[test]

@@ -206,7 +206,7 @@ const OPTION_VI: Record<string, string> = {
 };
 
 const FORMAT_VI: Record<string, string> = {
-  png: "Ảnh PNG", jpg: "Ảnh JPEG", webp: "Ảnh WebP", avif: "Ảnh AVIF", bmp: "Ảnh BMP", tiff: "Ảnh TIFF", ico: "Biểu tượng",
+  png: "Ảnh PNG", jpg: "Ảnh JPEG", jfif: "Ảnh JFIF", webp: "Ảnh WebP", avif: "Ảnh AVIF", bmp: "Ảnh BMP", tiff: "Ảnh TIFF", ico: "Biểu tượng",
   gif: "GIF động", mp4: "Video MP4", mkv: "Video MKV", webm: "Video WebM", mov: "QuickTime", avi: "Video AVI", wmv: "Video WMV",
   mp3: "Âm thanh MP3", m4a: "Âm thanh M4A", wav: "Âm thanh WAV", flac: "Âm thanh FLAC", ogg: "Âm thanh OGG",
   opus: "Âm thanh Opus", aiff: "Âm thanh AIFF", wma: "Âm thanh WMA", pdf: "PDF", docx: "Word", odt: "OpenDocument",
@@ -218,7 +218,7 @@ const FORMAT_VI: Record<string, string> = {
 const SUB_VI: Record<string, string> = { "high quality": "chất lượng cao", "MP3 mono": "MP3 mono" };
 
 export const FORMAT_EN: Record<string, string> = {
-  png: "PNG image", jpg: "JPEG image", webp: "WebP image", avif: "AVIF image", bmp: "BMP image", tiff: "TIFF image",
+  png: "PNG image", jpg: "JPEG image", jfif: "JFIF image", webp: "WebP image", avif: "AVIF image", bmp: "BMP image", tiff: "TIFF image",
   ico: "Icon", gif: "Animated GIF", mp4: "MP4 video", mkv: "MKV video", webm: "WebM video", mov: "QuickTime",
   avi: "AVI video", wmv: "WMV video", mp3: "MP3 audio", m4a: "M4A audio", wav: "WAV audio", flac: "FLAC audio",
   ogg: "OGG audio", opus: "Opus audio", aiff: "AIFF audio", wma: "WMA audio", pdf: "PDF", docx: "Word",
